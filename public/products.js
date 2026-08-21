@@ -8,12 +8,18 @@ async function carregarProdutos() {
             throw new Error("Erro ao carregar produtos.");
         }
 
-        produtos = await resposta.json();
+        const dados = await resposta.json();
+
+        produtos = dados.map(produto => ({
+            ...produto,
+            id: Number(produto.id),
+            preco: Number(produto.preco)
+        }));
 
         mostrarProdutos();
 
     } catch (erro) {
-        console.error(erro);
+        console.error("Erro ao carregar produtos:", erro);
 
         produtos = [];
 
