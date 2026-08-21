@@ -173,3 +173,12 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+.logo-loja {
+    width: 110px;
+    height: 110px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 12px;
+    border-radius: 15px;
+}

@@ -2,6 +2,7 @@ let carrinho = [];
 
 const nomeLoja = document.getElementById("nomeLoja");
 const descricaoLoja = document.getElementById("descricaoLoja");
+const logoLoja = document.getElementById("logoLoja");
 const listaProdutos = document.getElementById("listaProdutos");
 const listaCarrinho = document.getElementById("listaCarrinho");
 const totalElemento = document.getElementById("total");
@@ -9,6 +10,12 @@ const btnWhatsApp = document.getElementById("btnWhatsApp");
 
 nomeLoja.textContent = lojaConfig.nome;
 descricaoLoja.textContent = lojaConfig.descricao;
+
+if (lojaConfig.logo) {
+    logoLoja.src = lojaConfig.logo;
+} else {
+    logoLoja.style.display = "none";
+}
 
 function formatarPreco(valor) {
     return valor.toLocaleString("pt-PT") + " " + lojaConfig.moeda;
@@ -54,7 +61,7 @@ function mostrarProdutos() {
                 <button
                     class="btn btn-adicionar"
                     onclick="adicionarAoCarrinho(${produto.id})">
-                    Adicionar ao pedido
+                    ${produto.tipo === "servico" ? "Solicitar serviço" : "Adicionar ao pedido"}
                 </button>
             </div>
         `;
