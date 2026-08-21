@@ -62,25 +62,25 @@
 
 <script>
     const btnProdutos = document.getElementById("btnProdutos");
-    const listaProdutos = document.getElementById("listaProdutos");
+    const areaProdutos = document.getElementById("listaProdutos");
     const setaProdutos = document.getElementById("setaProdutos");
 
     btnProdutos.addEventListener("click", function () {
-        listaProdutos.classList.toggle("fechado");
+        areaProdutos.classList.toggle("fechado");
 
         setaProdutos.textContent =
-            listaProdutos.classList.contains("fechado") ? "▼" : "▲";
+            areaProdutos.classList.contains("fechado") ? "▼" : "▲";
     });
 
     const btnPedido = document.getElementById("btnPedido");
-    const conteudoPedido = document.getElementById("conteudoPedido");
+    const areaPedido = document.getElementById("conteudoPedido");
     const setaPedido = document.getElementById("setaPedido");
 
     btnPedido.addEventListener("click", function () {
-        conteudoPedido.classList.toggle("fechado");
+        areaPedido.classList.toggle("fechado");
 
         setaPedido.textContent =
-            conteudoPedido.classList.contains("fechado") ? "▼" : "▲";
+            areaPedido.classList.contains("fechado") ? "▼" : "▲";
     });
 </script>
 
