@@ -3,36 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Order Starter</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f4f9; color: #333; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1 { color: #25D366; text-align: center; }
-        .product { border-bottom: 1px solid #ddd; padding: 15px 0; display: flex; justify-content: space-between; align-items: center; }
-        button { background: #25D366; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #1ebe5d; }
-    </style>
+    <title>WhatsApp Shop</title>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <div class="container">
-        <h1>Loja Demonstrativa</h1>
-        <p style="text-align: center;">Faça o seu pedido diretamente pelo WhatsApp!</p>
-        <div id="product-list">
-            <div class="product">
-                <div>
-                    <strong>Produto Exemplo</strong><br>
-                    <span>1.500 Kz</span>
-                </div>
-                <button onclick="enviarWhatsApp()">Pedir via WhatsApp</button>
-            </div>
+
+<header class="cabecalho">
+    <h1 id="nomeLoja">Minha Loja</h1>
+    <p id="descricaoLoja"></p>
+</header>
+
+<main class="container">
+
+    <section>
+        <h2>Produtos e Serviços</h2>
+        <div id="listaProdutos" class="produtos"></div>
+    </section>
+
+    <section class="carrinho">
+        <h2>Meu Pedido</h2>
+
+        <div id="listaCarrinho">
+            <p class="carrinho-vazio">
+                O seu pedido está vazio.
+            </p>
         </div>
-    </div>
-    <script>
-        function enviarWhatsApp() {
-            const telefone = "244900000000"; // Substitua pelo seu número com DDI e prefixo
-            const mensagem = encodeURIComponent("Olá! Gostaria de encomendar: Produto Exemplo (1.500 Kz)");
-            window.open(`https://wa.me/${telefone}?text=${mensagem}`, '_blank');
-        }
-    </script>
+
+        <div id="total" class="total">
+            Total: 0 Kz
+        </div>
+
+        <button
+            id="btnWhatsApp"
+            class="btn btn-whatsapp"
+            style="display:none;">
+            Finalizar pedido pelo WhatsApp
+        </button>
+    </section>
+
+</main>
+
+<script src="config.js"></script>
+<script src="products.js"></script>
+<script src="script.js"></script>
+
 </body>
 </html>
