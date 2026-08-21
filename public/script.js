@@ -198,3 +198,29 @@ btnWhatsApp.addEventListener("click", finalizarPedido);
 
 mostrarProdutos();
 atualizarCarrinho();
+
+function alternarProdutos() {
+    const area = document.getElementById("listaProdutos");
+    const seta = document.getElementById("setaProdutos");
+
+    area.classList.toggle("fechado");
+
+    if (area.classList.contains("fechado")) {
+        seta.textContent = "▼";
+    } else {
+        seta.textContent = "▲";
+    }
+}
+
+function alternarPedido() {
+    const area = document.getElementById("conteudoPedido");
+    const seta = document.getElementById("setaPedido");
+
+    area.classList.toggle("fechado");
+
+    if (area.classList.contains("fechado")) {
+        seta.textContent = "▼";
+    } else {
+        seta.textContent = "▲";
+    }
+}

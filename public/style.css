@@ -227,3 +227,26 @@ body {
         height: 130px;
     }
 }
+
+/* Ajuste das secções recolhíveis */
+.secao-loja {
+    width: 100%;
+}
+
+.carrinho {
+    background: transparent;
+}
+
+.conteudo-pedido {
+    background: var(--branco);
+    border-radius: 0 0 14px 14px;
+}
+
+.btn-secao {
+    position: relative;
+    z-index: 2;
+}
+
+.fechado {
+    display: none !important;
+}
