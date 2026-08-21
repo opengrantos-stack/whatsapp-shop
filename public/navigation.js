@@ -1,25 +1,21 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-    const btnProdutos = document.getElementById("btnProdutos");
-    const listaProdutos = document.getElementById("listaProdutos");
-    const setaProdutos = document.getElementById("setaProdutos");
+    alert("navigation.js carregou!");
 
-    const btnPedido = document.getElementById("btnPedido");
-    const conteudoPedido = document.getElementById("conteudoPedido");
-    const setaPedido = document.getElementById("setaPedido");
+    const produtos = document.getElementById("btnProdutos");
+    const lista = document.getElementById("listaProdutos");
 
-    btnProdutos.addEventListener("click", function () {
-        listaProdutos.classList.toggle("fechado");
+    const pedido = document.getElementById("btnPedido");
+    const areaPedido = document.getElementById("conteudoPedido");
 
-        setaProdutos.textContent =
-            listaProdutos.classList.contains("fechado") ? "▼" : "▲";
-    });
+    produtos.onclick = function () {
+        lista.style.display =
+            lista.style.display === "none" ? "flex" : "none";
+    };
 
-    btnPedido.addEventListener("click", function () {
-        conteudoPedido.classList.toggle("fechado");
-
-        setaPedido.textContent =
-            conteudoPedido.classList.contains("fechado") ? "▼" : "▲";
-    });
+    pedido.onclick = function () {
+        areaPedido.style.display =
+            areaPedido.style.display === "none" ? "block" : "none";
+    };
 
 });
