@@ -1,4 +1,4 @@
-const produtos = [
+const produtosIniciais = [
     {
         id: 1,
         tipo: "produto",
@@ -24,3 +24,7 @@ const produtos = [
         imagem: ""
     }
 ];
+
+let produtos = JSON.parse(
+    localStorage.getItem("whatsappShopProdutos")
+) || produtosIniciais;

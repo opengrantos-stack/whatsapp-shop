@@ -15,7 +15,64 @@
     <p id="descricaoLoja"></p>
 </header>
 
+
 <main class="container">
+
+    <section class="secao-gerir">
+        <button id="btnGerir" class="btn-secao" type="button">
+            ADICIONAR PRODUTO / SERVIÇO
+            <span id="setaGerir">▼</span>
+        </button>
+
+        <div id="formularioProduto" class="formulario fechado">
+
+            <h2>Novo produto ou serviço</h2>
+
+            <label for="tipoProduto">Tipo</label>
+            <select id="tipoProduto">
+                <option value="produto">Produto</option>
+                <option value="servico">Serviço</option>
+            </select>
+
+            <label for="nomeProduto">Nome</label>
+            <input
+                type="text"
+                id="nomeProduto"
+                placeholder="Nome do produto ou serviço"
+            >
+
+            <label for="descricaoProduto">Descrição</label>
+            <textarea
+                id="descricaoProduto"
+                placeholder="Descreva o produto ou serviço"
+                rows="4"
+            ></textarea>
+
+            <label for="precoProduto">Preço (Kz)</label>
+            <input
+                type="number"
+                id="precoProduto"
+                placeholder="Ex.: 5000"
+                min="0"
+            >
+
+            <label for="imagemProduto">Imagem</label>
+            <input
+                type="file"
+                id="imagemProduto"
+                accept="image/*"
+                capture="environment"
+            >
+
+            <button id="btnPublicar" class="btn btn-publicar" type="button">
+                Publicar
+            </button>
+
+            <p id="mensagemCadastro" class="mensagem-cadastro"></p>
+
+        </div>
+    </section>
+
 
     <section class="secao-loja">
         <button id="btnProdutos" class="btn-secao" type="button">
@@ -59,6 +116,7 @@
 <script src="config.js"></script>
 <script src="products.js"></script>
 <script src="navigation.js"></script>
+<script src="admin.js"></script>
 <script src="script.js"></script>
 
 

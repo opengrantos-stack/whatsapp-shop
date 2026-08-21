@@ -250,3 +250,51 @@ body {
 .fechado {
     display: none !important;
 }
+
+.formulario {
+    background: var(--branco);
+    margin-top: 12px;
+    padding: 18px;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+}
+
+.formulario h2 {
+    margin-top: 0;
+    font-size: 20px;
+}
+
+.formulario label {
+    display: block;
+    margin: 12px 0 6px;
+    font-weight: bold;
+}
+
+.formulario input,
+.formulario select,
+.formulario textarea {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+
+.formulario textarea {
+    resize: vertical;
+}
+
+.btn-publicar {
+    width: 100%;
+    margin-top: 18px;
+    background: var(--cor-secundaria);
+    color: white;
+}
+
+.mensagem-cadastro {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 0;
+}
