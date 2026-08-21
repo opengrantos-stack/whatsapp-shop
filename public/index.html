@@ -10,37 +10,48 @@
 <body>
 
 <header class="cabecalho">
-    <img id="logoLoja" class="logo-loja" src="" alt="Logo da loja">
+    <img src="images/logo.png" alt="Logo da loja" class="logo">
     <h1 id="nomeLoja">Minha Loja</h1>
     <p id="descricaoLoja"></p>
 </header>
 
 <main class="container">
 
-    <section>
-        <h2>Produtos e Serviços</h2>
-        <div id="listaProdutos" class="produtos"></div>
+    <section class="secao-loja">
+        <button id="btnProdutos" class="btn-secao" type="button">
+            PRODUTOS E SERVIÇOS
+            <span id="setaProdutos">▼</span>
+        </button>
+
+        <div id="listaProdutos" class="produtos fechado"></div>
     </section>
 
     <section class="carrinho">
-        <h2>Meu Pedido</h2>
-
-        <div id="listaCarrinho">
-            <p class="carrinho-vazio">
-                O seu pedido está vazio.
-            </p>
-        </div>
-
-        <div id="total" class="total">
-            Total: 0 Kz
-        </div>
-
-        <button
-            id="btnWhatsApp"
-            class="btn btn-whatsapp"
-            style="display:none;">
-            Finalizar pedido pelo WhatsApp
+        <button id="btnPedido" class="btn-secao" type="button">
+            MEU PEDIDO
+            <span id="setaPedido">▼</span>
         </button>
+
+        <div id="conteudoPedido" class="conteudo-pedido fechado">
+
+            <div id="listaCarrinho">
+                <p class="carrinho-vazio">
+                    O seu pedido está vazio.
+                </p>
+            </div>
+
+            <div id="total" class="total">
+                Total: 0 Kz
+            </div>
+
+            <button
+                id="btnWhatsApp"
+                class="btn btn-whatsapp"
+                style="display:none;">
+                Finalizar pedido pelo WhatsApp
+            </button>
+
+        </div>
     </section>
 
 </main>
@@ -48,6 +59,30 @@
 <script src="config.js"></script>
 <script src="products.js"></script>
 <script src="script.js"></script>
+
+<script>
+    const btnProdutos = document.getElementById("btnProdutos");
+    const listaProdutos = document.getElementById("listaProdutos");
+    const setaProdutos = document.getElementById("setaProdutos");
+
+    btnProdutos.addEventListener("click", function () {
+        listaProdutos.classList.toggle("fechado");
+
+        setaProdutos.textContent =
+            listaProdutos.classList.contains("fechado") ? "▼" : "▲";
+    });
+
+    const btnPedido = document.getElementById("btnPedido");
+    const conteudoPedido = document.getElementById("conteudoPedido");
+    const setaPedido = document.getElementById("setaPedido");
+
+    btnPedido.addEventListener("click", function () {
+        conteudoPedido.classList.toggle("fechado");
+
+        setaPedido.textContent =
+            conteudoPedido.classList.contains("fechado") ? "▼" : "▲";
+    });
+</script>
 
 </body>
 </html>
