@@ -23,12 +23,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const preco = Number(document.getElementById("precoProduto").value);
         const arquivo = document.getElementById("imagemProduto").files[0];
 
-        if (!nome || !descricao || !preco) {
+        if (!tipo || !nome || !descricao || !preco) {
             mensagem.textContent =
                 "Preencha o tipo, nome, descrição e preço.";
-
             return;
         }
+
+        btnPublicar.disabled = true;
+        btnPublicar.textContent = "A publicar...";
 
         function publicar(imagem) {
 
@@ -41,39 +43,119 @@ document.addEventListener("DOMContentLoaded", function () {
                 imagem: imagem || ""
             };
 
-            produtos.push(novoProduto);
+            try {
 
-            localStorage.setItem(
-                "whatsappShopProdutos",
-                JSON.stringify(produtos)
-            );
+                produtos.push(novoProduto);
 
-            mostrarProdutos();
+                localStorage.setItem(
+                    "whatsappShopProdutos",
+                    JSON.stringify(produtos)
+                );
 
-            mensagem.textContent =
-                tipo === "servico"
-                    ? "Serviço publicado com sucesso!"
-                    : "Produto publicado com sucesso!";
+                mostrarProdutos();
 
-            document.getElementById("nomeProduto").value = "";
-            document.getElementById("descricaoProduto").value = "";
-            document.getElementById("precoProduto").value = "";
-            document.getElementById("imagemProduto").value = "";
+                mensagem.textContent =
+                    tipo === "servico"
+                        ? "Serviço publicado com sucesso!"
+                        : "Produto publicado com sucesso!";
+
+                document.getElementById("nomeProduto").value = "";
+                document.getElementById("descricaoProduto").value = "";
+                document.getElementById("precoProduto").value = "";
+                document.getElementById("imagemProduto").value = "";
+
+            } catch (erro) {
+
+                console.error(erro);
+
+                produtos.pop();
+
+                mensagem.textContent =
+                    "Não foi possível guardar a imagem. Tente uma foto menor.";
+
+            } finally {
+
+                btnPublicar.disabled = false;
+                btnPublicar.textContent = "Publicar";
+            }
         }
 
-        if (arquivo) {
+        if (!arquivo) {
+            publicar("");
+            return;
+        }
 
-            const leitor = new FileReader();
+        const leitor = new FileReader();
 
-            leitor.onload = function (evento) {
-                publicar(evento.target.result);
+        leitor.onload = function (evento) {
+
+            const imagemOriginal = new Image();
+
+            imagemOriginal.onload = function () {
+
+                const maximo = 900;
+
+                let largura = imagemOriginal.width;
+                let altura = imagemOriginal.height;
+
+                if (largura > maximo || altura > maximo) {
+
+                    if (largura > altura) {
+                        altura = Math.round(
+                            altura * maximo / largura
+                        );
+                        largura = maximo;
+                    } else {
+                        largura = Math.round(
+                            largura * maximo / altura
+                        );
+                        altura = maximo;
+                    }
+                }
+
+                const canvas = document.createElement("canvas");
+
+                canvas.width = largura;
+                canvas.height = altura;
+
+                const contexto = canvas.getContext("2d");
+
+                contexto.drawImage(
+                    imagemOriginal,
+                    0,
+                    0,
+                    largura,
+                    altura
+                );
+
+                const imagemReduzida =
+                    canvas.toDataURL("image/jpeg", 0.75);
+
+                publicar(imagemReduzida);
             };
 
-            leitor.readAsDataURL(arquivo);
+            imagemOriginal.onerror = function () {
 
-        } else {
-            publicar("");
-        }
+                mensagem.textContent =
+                    "Não foi possível processar a imagem.";
+
+                btnPublicar.disabled = false;
+                btnPublicar.textContent = "Publicar";
+            };
+
+            imagemOriginal.src = evento.target.result;
+        };
+
+        leitor.onerror = function () {
+
+            mensagem.textContent =
+                "Não foi possível carregar a imagem.";
+
+            btnPublicar.disabled = false;
+            btnPublicar.textContent = "Publicar";
+        };
+
+        leitor.readAsDataURL(arquivo);
     });
 
 });
