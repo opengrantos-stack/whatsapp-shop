@@ -1,9 +1,111 @@
 const express = require('express');
+const { Pool } = require('pg');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static('public'));
+
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.DATABASE_URL
+        ? { rejectUnauthorized: false }
+        : false
+});
+
+async function prepararBanco() {
+    if (!process.env.DATABASE_URL) {
+        console.log('DATABASE_URL não configurada.');
+        return;
+    }
+
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS whatsapp_products (
+                id BIGINT PRIMARY KEY,
+                tipo VARCHAR(20) NOT NULL,
+                nome TEXT NOT NULL,
+                descricao TEXT NOT NULL,
+                preco NUMERIC(15,2) NOT NULL,
+                imagem TEXT DEFAULT '',
+                criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        console.log('Banco de dados do WhatsApp Shop preparado.');
+    } catch (erro) {
+        console.error('Erro ao preparar banco:', erro.message);
+    }
+}
+
+app.get('/api/produtos', async (req, res) => {
+    try {
+        const resultado = await pool.query(`
+            SELECT id, tipo, nome, descricao, preco, imagem
+            FROM whatsapp_products
+            ORDER BY criado_em DESC
+        `);
+
+        res.json(resultado.rows);
+    } catch (erro) {
+        console.error('Erro ao buscar produtos:', erro.message);
+        res.status(500).json({
+            erro: 'Não foi possível carregar os produtos.'
+        });
+    }
+});
+
+app.post('/api/produtos', async (req, res) => {
+    try {
+        const {
+            id,
+            tipo,
+            nome,
+            descricao,
+            preco,
+            imagem
+        } = req.body;
+
+        if (!id || !tipo || !nome || !descricao || !preco) {
+            return res.status(400).json({
+                erro: 'Dados incompletos.'
+            });
+        }
+
+        await pool.query(`
+            INSERT INTO whatsapp_products
+            (id, tipo, nome, descricao, preco, imagem)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (id) DO UPDATE SET
+                tipo = EXCLUDED.tipo,
+                nome = EXCLUDED.nome,
+                descricao = EXCLUDED.descricao,
+                preco = EXCLUDED.preco,
+                imagem = EXCLUDED.imagem
+        `, [
+            id,
+            tipo,
+            nome,
+            descricao,
+            preco,
+            imagem || ''
+        ]);
+
+        res.json({
+            sucesso: true,
+            mensagem: 'Produto/serviço guardado.'
+        });
+
+    } catch (erro) {
+        console.error('Erro ao guardar:', erro.message);
+        res.status(500).json({
+            erro: 'Não foi possível guardar o produto.'
+        });
+    }
+});
+
+prepararBanco();
 
 app.listen(port, () => {
     console.log('Servidor a rodar em http://localhost:' + port);
