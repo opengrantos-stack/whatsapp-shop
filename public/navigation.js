@@ -1,21 +1,25 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-    alert("navigation.js carregou!");
-
     const produtos = document.getElementById("btnProdutos");
     const lista = document.getElementById("listaProdutos");
+    const setaProdutos = document.getElementById("setaProdutos");
 
     const pedido = document.getElementById("btnPedido");
     const areaPedido = document.getElementById("conteudoPedido");
+    const setaPedido = document.getElementById("setaPedido");
 
-    produtos.onclick = function () {
-        lista.style.display =
-            lista.style.display === "none" ? "flex" : "none";
-    };
+    produtos.addEventListener("click", function () {
+        lista.classList.toggle("fechado");
 
-    pedido.onclick = function () {
-        areaPedido.style.display =
-            areaPedido.style.display === "none" ? "block" : "none";
-    };
+        setaProdutos.textContent =
+            lista.classList.contains("fechado") ? "▼" : "▲";
+    });
+
+    pedido.addEventListener("click", function () {
+        areaPedido.classList.toggle("fechado");
+
+        setaPedido.textContent =
+            areaPedido.classList.contains("fechado") ? "▼" : "▲";
+    });
 
 });
