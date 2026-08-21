@@ -1,0 +1,4 @@
+:root { --cor-primaria: #25D366; --cor-secundaria: #128C7E; --fundo: #f4f7f6; --texto-principal: #333; --branco: #fff; }
+body { font-family: sans-serif; background-color: var(--fundo); padding: 20px; }
+.produto-card { background: var(--branco); border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto; text-align: center; }
+.btn-whatsapp { display: block; background: var(--cor-primaria); color: white; padding: 15px; border-radius: 10px; text-decoration: none; margin-top: 15px; font-weight: bold; }
