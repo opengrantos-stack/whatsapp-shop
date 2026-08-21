@@ -8,14 +8,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const mensagem = document.getElementById("mensagemCadastro");
 
     btnGerir.addEventListener("click", function () {
-
         formulario.classList.toggle("fechado");
 
         setaGerir.textContent =
             formulario.classList.contains("fechado") ? "▼" : "▲";
     });
 
-    btnPublicar.addEventListener("click", function () {
+    btnPublicar.addEventListener("click", async function () {
 
         const tipo = document.getElementById("tipoProduto").value;
         const nome = document.getElementById("nomeProduto").value.trim();
@@ -31,28 +30,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
         btnPublicar.disabled = true;
         btnPublicar.textContent = "A publicar...";
+        mensagem.textContent = "";
 
-        function publicar(imagem) {
+        async function publicar(imagem) {
 
             const novoProduto = {
                 id: Date.now(),
-                tipo: tipo,
-                nome: nome,
-                descricao: descricao,
-                preco: preco,
+                tipo,
+                nome,
+                descricao,
+                preco,
                 imagem: imagem || ""
             };
 
             try {
+                const resposta = await fetch("/api/produtos", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(novoProduto)
+                });
 
-                produtos.push(novoProduto);
+                const resultado = await resposta.json();
 
-                localStorage.setItem(
-                    "whatsappShopProdutos",
-                    JSON.stringify(produtos)
-                );
-
-                mostrarProdutos();
+                if (!resposta.ok) {
+                    throw new Error(
+                        resultado.erro || "Erro ao publicar."
+                    );
+                }
 
                 mensagem.textContent =
                     tipo === "servico"
@@ -64,24 +70,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("precoProduto").value = "";
                 document.getElementById("imagemProduto").value = "";
 
-            } catch (erro) {
+                await carregarProdutos();
 
+            } catch (erro) {
                 console.error(erro);
 
-                produtos.pop();
-
                 mensagem.textContent =
-                    "Não foi possível guardar a imagem. Tente uma foto menor.";
-
-            } finally {
-
-                btnPublicar.disabled = false;
-                btnPublicar.textContent = "Publicar";
+                    "Não foi possível publicar. Tente novamente.";
             }
+
+            btnPublicar.disabled = false;
+            btnPublicar.textContent = "Publicar";
         }
 
         if (!arquivo) {
-            publicar("");
+            await publicar("");
             return;
         }
 
@@ -91,7 +94,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const imagemOriginal = new Image();
 
-            imagemOriginal.onload = function () {
+            imagemOriginal.onload = async function () {
 
                 const maximo = 900;
 
@@ -99,7 +102,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 let altura = imagemOriginal.height;
 
                 if (largura > maximo || altura > maximo) {
-
                     if (largura > altura) {
                         altura = Math.round(
                             altura * maximo / largura
@@ -131,11 +133,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 const imagemReduzida =
                     canvas.toDataURL("image/jpeg", 0.75);
 
-                publicar(imagemReduzida);
+                await publicar(imagemReduzida);
             };
 
             imagemOriginal.onerror = function () {
-
                 mensagem.textContent =
                     "Não foi possível processar a imagem.";
 
@@ -147,7 +148,6 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         leitor.onerror = function () {
-
             mensagem.textContent =
                 "Não foi possível carregar a imagem.";
 
