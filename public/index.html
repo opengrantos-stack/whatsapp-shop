@@ -92,13 +92,40 @@
                 min="0"
             >
 
-            <label for="imagemProduto">Imagem</label>
-            <input
-                type="file"
-                id="imagemProduto"
-                accept="image/*"
-                capture="environment"
-            >
+            <label>Imagem</label>
+
+            <div class="opcoes-imagem">
+
+                <label
+                    for="imagemProduto"
+                    class="btn btn-imagem">
+                    🖼️ Escolher foto
+                </label>
+
+                <input
+                    type="file"
+                    id="imagemProduto"
+                    accept="image/*"
+                    hidden
+                >
+
+                <label
+                    for="cameraProduto"
+                    class="btn btn-imagem">
+                    📷 Tirar foto
+                </label>
+
+                <input
+                    type="file"
+                    id="cameraProduto"
+                    accept="image/*"
+                    capture="environment"
+                    hidden
+                >
+
+            </div>
+
+            <p id="mensagemImagem" class="mensagem-imagem"></p>
 
             <button id="btnPublicar" class="btn btn-publicar" type="button">
                 Publicar

@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const nome = document.getElementById("nomeProduto").value.trim();
         const descricao = document.getElementById("descricaoProduto").value.trim();
         const preco = Number(document.getElementById("precoProduto").value);
-        const arquivo = document.getElementById("imagemProduto").files[0];
+        const arquivo = document.getElementById("imagemProduto").files[0] || document.getElementById("cameraProduto").files[0];
 
         if (!tipo || !nome || !descricao || !preco) {
             mensagem.textContent =
@@ -117,6 +117,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("descricaoProduto").value = "";
                 document.getElementById("precoProduto").value = "";
                 document.getElementById("imagemProduto").value = "";
+                  document.getElementById("cameraProduto").value = "";
 
                 await carregarProdutos();
 
