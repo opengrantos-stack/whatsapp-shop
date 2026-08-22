@@ -33,7 +33,7 @@ async function prepararBanco() {
             )
         `);
 
-        console.log('Banco de dados do WhatsApp Shop preparado.');
+        console.log('Banco de dados do GC-AngGlobal preparado.');
     } catch (erro) {
         console.error('Erro ao preparar banco:', erro.message);
     }
