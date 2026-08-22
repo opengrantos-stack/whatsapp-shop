@@ -56,6 +56,24 @@ app.get('/api/produtos', async (req, res) => {
     }
 });
 
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '123456';
+
+app.post('/api/admin/login', (req, res) => {
+    const { password } = req.body;
+
+    if (password !== ADMIN_PASSWORD) {
+        return res.status(401).json({
+            erro: 'Senha incorreta.'
+        });
+    }
+
+    res.json({
+        sucesso: true,
+        token: 'whatsapp-shop-admin'
+    });
+});
+
 app.post('/api/produtos', async (req, res) => {
     try {
         const {
