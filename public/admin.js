@@ -8,6 +8,25 @@ document.addEventListener("DOMContentLoaded", function () {
     const mensagem = document.getElementById("mensagemCadastro");
 
     btnGerir.addEventListener("click", function () {
+
+        const token = localStorage.getItem(
+            "whatsapp_shop_admin_token"
+        );
+
+        if (token !== "whatsapp-shop-admin") {
+            const mensagemLogin =
+                document.getElementById("mensagemLoginAdmin");
+
+            mensagemLogin.textContent =
+                "Entre como administrador primeiro.";
+
+            document.getElementById(
+                "areaLoginAdmin"
+            ).classList.remove("fechado");
+
+            return;
+        }
+
         formulario.classList.toggle("fechado");
 
         setaGerir.textContent =
