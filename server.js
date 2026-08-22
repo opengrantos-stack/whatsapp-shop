@@ -136,6 +136,95 @@ app.post('/api/produtos', verificarAdmin, async (req, res) => {
     }
 });
 
+
+app.put('/api/produtos/:id', verificarAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            tipo,
+            nome,
+            descricao,
+            preco,
+            imagem
+        } = req.body;
+
+        if (!tipo || !nome || !descricao || !preco) {
+            return res.status(400).json({
+                erro: 'Dados incompletos.'
+            });
+        }
+
+        const resultado = await pool.query(`
+            UPDATE whatsapp_products
+            SET
+                tipo = $1,
+                nome = $2,
+                descricao = $3,
+                preco = $4,
+                imagem = $5
+            WHERE id = $6
+            RETURNING id, tipo, nome, descricao, preco, imagem
+        `, [
+            tipo,
+            nome,
+            descricao,
+            preco,
+            imagem || '',
+            id
+        ]);
+
+        if (resultado.rowCount === 0) {
+            return res.status(404).json({
+                erro: 'Produto/serviço não encontrado.'
+            });
+        }
+
+        res.json({
+            sucesso: true,
+            mensagem: 'Produto/serviço atualizado.',
+            produto: resultado.rows[0]
+        });
+
+    } catch (erro) {
+        console.error('Erro ao editar:', erro.message);
+
+        res.status(500).json({
+            erro: 'Não foi possível editar o produto/serviço.'
+        });
+    }
+});
+
+
+app.delete('/api/produtos/:id', verificarAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const resultado = await pool.query(`
+            DELETE FROM whatsapp_products
+            WHERE id = $1
+            RETURNING id
+        `, [id]);
+
+        if (resultado.rowCount === 0) {
+            return res.status(404).json({
+                erro: 'Produto/serviço não encontrado.'
+            });
+        }
+
+        res.json({
+            sucesso: true,
+            mensagem: 'Produto/serviço eliminado.'
+        });
+
+    } catch (erro) {
+        console.error('Erro ao eliminar:', erro.message);
+
+        res.status(500).json({
+            erro: 'Não foi possível eliminar o produto/serviço.'
+        });
+    }
+});
+
 prepararBanco();
 
 app.listen(port, () => {

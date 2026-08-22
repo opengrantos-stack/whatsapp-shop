@@ -62,32 +62,56 @@ document.addEventListener("DOMContentLoaded", function () {
                 imagem: imagem || ""
             };
 
-            try {
-                const resposta = await fetch("/api/produtos", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization":
-                            "Bearer " +
-                            localStorage.getItem(
-                                "whatsapp_shop_admin_token"
-                            )
-                    },
-                    body: JSON.stringify(novoProduto)
-                });
+              try {
 
-                const resultado = await resposta.json();
+                  const idEditando =
+                      btnPublicar.dataset.editandoId;
 
-                if (!resposta.ok) {
-                    throw new Error(
-                        resultado.erro || "Erro ao publicar."
-                    );
-                }
+                  const url = idEditando
+                      ? "/api/produtos/" + idEditando
+                      : "/api/produtos";
 
-                mensagem.textContent =
-                    tipo === "servico"
-                        ? "Serviço publicado com sucesso!"
-                        : "Produto publicado com sucesso!";
+                  const metodo = idEditando
+                      ? "PUT"
+                      : "POST";
+
+                  const resposta = await fetch(url, {
+                      method: metodo,
+                      headers: {
+                          "Content-Type": "application/json",
+                          "Authorization":
+                              "Bearer " +
+                              localStorage.getItem(
+                                  "whatsapp_shop_admin_token"
+                              )
+                      },
+                      body: JSON.stringify(novoProduto)
+                  });
+
+                  const resultado = await resposta.json();
+
+                  if (!resposta.ok) {
+                      throw new Error(
+                          resultado.erro || "Erro ao publicar."
+                      );
+                  }
+
+                  if (idEditando) {
+
+                      mensagem.textContent =
+                          tipo === "servico"
+                              ? "Serviço atualizado com sucesso!"
+                              : "Produto atualizado com sucesso!";
+
+                      delete btnPublicar.dataset.editandoId;
+
+                  } else {
+
+                      mensagem.textContent =
+                          tipo === "servico"
+                              ? "Serviço publicado com sucesso!"
+                              : "Produto publicado com sucesso!";
+                  }
 
                 document.getElementById("nomeProduto").value = "";
                 document.getElementById("descricaoProduto").value = "";

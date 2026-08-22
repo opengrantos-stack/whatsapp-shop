@@ -63,10 +63,90 @@ function mostrarProdutos() {
                     onclick="adicionarAoCarrinho(${produto.id})">
                     ${produto.tipo === "servico" ? "Solicitar serviço" : "Adicionar ao pedido"}
                 </button>
+
+                <div
+                    class="acoes-admin"
+                    data-admin-id="${produto.id}"
+                    style="display:none; margin-top:10px;">
+
+                    <button
+                        class="btn btn-editar"
+                        onclick="editarProduto(${produto.id})">
+                        ✏️ Editar
+                    </button>
+
+                </div>
             </div>
         `;
 
         listaProdutos.appendChild(card);
+    });
+
+    const adminLogado =
+        localStorage.getItem("whatsapp_shop_admin_token") ===
+        "whatsapp-shop-admin";
+
+    document.querySelectorAll(".acoes-admin").forEach(area => {
+        area.style.display = adminLogado ? "block" : "none";
+    });
+}
+
+function editarProduto(id) {
+
+    const token = localStorage.getItem(
+        "whatsapp_shop_admin_token"
+    );
+
+    if (token !== "whatsapp-shop-admin") {
+        return;
+    }
+
+    const produto = produtos.find(p => p.id === id);
+
+    if (!produto) {
+        return;
+    }
+
+    document.getElementById("tipoProduto").value =
+        produto.tipo;
+
+    document.getElementById("nomeProduto").value =
+        produto.nome;
+
+    document.getElementById("descricaoProduto").value =
+        produto.descricao;
+
+    document.getElementById("precoProduto").value =
+        produto.preco;
+
+    document.getElementById("imagemProduto").value = "";
+
+    const formulario =
+        document.getElementById("formularioProduto");
+
+    formulario.classList.remove("fechado");
+
+    const setaGerir =
+        document.getElementById("setaGerir");
+
+    setaGerir.textContent = "▲";
+
+    const btnPublicar =
+        document.getElementById("btnPublicar");
+
+    btnPublicar.textContent = "Guardar alterações";
+
+    btnPublicar.dataset.editandoId = id;
+
+    const mensagem =
+        document.getElementById("mensagemCadastro");
+
+    mensagem.textContent =
+        "A editar: " + produto.nome;
+
+    formulario.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
     });
 }
 
