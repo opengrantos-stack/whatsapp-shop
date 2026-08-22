@@ -75,6 +75,12 @@ function mostrarProdutos() {
                         ✏️ Editar
                     </button>
 
+                    <button
+                        class="btn btn-eliminar"
+                        onclick="eliminarProduto(${produto.id})">
+                        🗑️ Eliminar
+                    </button>
+
                 </div>
             </div>
         `;
@@ -89,6 +95,71 @@ function mostrarProdutos() {
     document.querySelectorAll(".acoes-admin").forEach(area => {
         area.style.display = adminLogado ? "block" : "none";
     });
+}
+
+async function eliminarProduto(id) {
+
+    const token = localStorage.getItem(
+        "whatsapp_shop_admin_token"
+    );
+
+    if (token !== "whatsapp-shop-admin") {
+        return;
+    }
+
+    const produto = produtos.find(p => p.id === id);
+
+    if (!produto) {
+        return;
+    }
+
+    const confirmar = confirm(
+        'Tem certeza que deseja eliminar "' +
+        produto.nome +
+        '"?'
+    );
+
+    if (!confirmar) {
+        return;
+    }
+
+    try {
+
+        const resposta = await fetch(
+            "/api/produtos/" + id,
+            {
+                method: "DELETE",
+                headers: {
+                    "Authorization":
+                        "Bearer " + token
+                }
+            }
+        );
+
+        const resultado = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                resultado.erro ||
+                "Não foi possível eliminar."
+            );
+        }
+
+        await carregarProdutos();
+
+        alert(
+            "Produto/serviço eliminado com sucesso."
+        );
+
+    } catch (erro) {
+
+        console.error(erro);
+
+        alert(
+            erro.message ||
+            "Não foi possível eliminar o produto/serviço."
+        );
+    }
 }
 
 function editarProduto(id) {
