@@ -159,3 +159,75 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const btnAdmin = document.getElementById("btnAdmin");
+    const areaLoginAdmin = document.getElementById("areaLoginAdmin");
+    const btnLoginAdmin = document.getElementById("btnLoginAdmin");
+    const senhaAdmin = document.getElementById("senhaAdmin");
+    const mensagemLoginAdmin = document.getElementById("mensagemLoginAdmin");
+
+    btnAdmin.addEventListener("click", function () {
+        areaLoginAdmin.classList.toggle("fechado");
+    });
+
+    btnLoginAdmin.addEventListener("click", async function () {
+
+        const password = senhaAdmin.value;
+
+        if (!password) {
+            mensagemLoginAdmin.textContent =
+                "Digite a senha de administrador.";
+            return;
+        }
+
+        btnLoginAdmin.disabled = true;
+        btnLoginAdmin.textContent = "A entrar...";
+        mensagemLoginAdmin.textContent = "";
+
+        try {
+
+            const resposta = await fetch("/api/admin/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    password
+                })
+            });
+
+            const resultado = await resposta.json();
+
+            if (!resposta.ok) {
+                throw new Error(
+                    resultado.erro || "Não foi possível entrar."
+                );
+            }
+
+            localStorage.setItem(
+                "whatsapp_shop_admin_token",
+                resultado.token
+            );
+
+            mensagemLoginAdmin.textContent =
+                "Login efetuado com sucesso.";
+
+            senhaAdmin.value = "";
+
+        } catch (erro) {
+
+            console.error(erro);
+
+            mensagemLoginAdmin.textContent =
+                erro.message || "Senha incorreta.";
+
+        } finally {
+
+            btnLoginAdmin.disabled = false;
+            btnLoginAdmin.textContent = "Entrar";
+        }
+    });
+
+});
