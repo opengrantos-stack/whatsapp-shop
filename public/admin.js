@@ -191,6 +191,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const btnLoginAdmin = document.getElementById("btnLoginAdmin");
     const senhaAdmin = document.getElementById("senhaAdmin");
     const mensagemLoginAdmin = document.getElementById("mensagemLoginAdmin");
+    const btnSairAdmin = document.getElementById("btnSairAdmin");
 
     btnAdmin.addEventListener("click", function () {
         areaLoginAdmin.classList.toggle("fechado");
@@ -239,6 +240,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Login efetuado com sucesso.";
 
             senhaAdmin.value = "";
+            senhaAdmin.style.display = "none";
+            btnLoginAdmin.style.display = "none";
+            btnSairAdmin.style.display = "block";
 
         } catch (erro) {
 
@@ -254,4 +258,56 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const btnSairAdmin = document.getElementById("btnSairAdmin");
+    const mensagemLoginAdmin =
+        document.getElementById("mensagemLoginAdmin");
+    const areaLoginAdmin =
+        document.getElementById("areaLoginAdmin");
+    const formulario =
+        document.getElementById("formularioProduto");
+
+    function atualizarEstadoAdmin() {
+
+        const token = localStorage.getItem(
+            "whatsapp_shop_admin_token"
+        );
+
+        if (token === "whatsapp-shop-admin") {
+            senhaAdmin.style.display = "none";
+            btnLoginAdmin.style.display = "none";
+            btnSairAdmin.style.display = "block";
+        } else {
+            senhaAdmin.style.display = "block";
+            btnLoginAdmin.style.display = "block";
+            btnSairAdmin.style.display = "none";
+        }
+    }
+
+    btnSairAdmin.addEventListener("click", function () {
+
+        localStorage.removeItem(
+            "whatsapp_shop_admin_token"
+        );
+
+        formulario.classList.add("fechado");
+
+        const setaGerir =
+            document.getElementById("setaGerir");
+
+        setaGerir.textContent = "▼";
+
+        senhaAdmin.value = "";
+        senhaAdmin.style.display = "block";
+        btnLoginAdmin.style.display = "block";
+        btnSairAdmin.style.display = "none";
+
+        mensagemLoginAdmin.textContent =
+            "Sessão encerrada.";
+    });
+
+    atualizarEstadoAdmin();
 });
