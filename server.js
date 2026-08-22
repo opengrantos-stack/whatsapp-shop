@@ -74,7 +74,20 @@ app.post('/api/admin/login', (req, res) => {
     });
 });
 
-app.post('/api/produtos', async (req, res) => {
+
+function verificarAdmin(req, res, next) {
+    const autorizacao = req.headers.authorization;
+
+    if (autorizacao !== 'Bearer whatsapp-shop-admin') {
+        return res.status(401).json({
+            erro: 'É necessário entrar como administrador.'
+        });
+    }
+
+    next();
+}
+
+app.post('/api/produtos', verificarAdmin, async (req, res) => {
     try {
         const {
             id,
