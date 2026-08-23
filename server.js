@@ -9,9 +9,7 @@ app.use(express.static('public'));
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL
-        ? { rejectUnauthorized: false }
-        : false
+    ssl: false
 });
 
 async function prepararBanco() {
@@ -22,7 +20,7 @@ async function prepararBanco() {
 
     try {
         await pool.query(`
-            CREATE TABLE IF NOT EXISTS whatsapp_products (
+            CREATE TABLE IF NOT EXISTS gc_angglobal_products (
                 id BIGINT PRIMARY KEY,
                 tipo VARCHAR(20) NOT NULL,
                 nome TEXT NOT NULL,
@@ -43,7 +41,7 @@ app.get('/api/produtos', async (req, res) => {
     try {
         const resultado = await pool.query(`
             SELECT id, tipo, nome, descricao, preco, imagem
-            FROM whatsapp_products
+            FROM gc_angglobal_products
             ORDER BY criado_em DESC
         `);
 
@@ -70,7 +68,7 @@ app.post('/api/admin/login', (req, res) => {
 
     res.json({
         sucesso: true,
-        token: 'whatsapp-shop-admin'
+        token: 'gc-angglobal-admin'
     });
 });
 
@@ -78,7 +76,7 @@ app.post('/api/admin/login', (req, res) => {
 function verificarAdmin(req, res, next) {
     const autorizacao = req.headers.authorization;
 
-    if (autorizacao !== 'Bearer whatsapp-shop-admin') {
+    if (autorizacao !== 'Bearer gc-angglobal-admin') {
         return res.status(401).json({
             erro: 'É necessário entrar como administrador.'
         });
@@ -105,7 +103,7 @@ app.post('/api/produtos', verificarAdmin, async (req, res) => {
         }
 
         await pool.query(`
-            INSERT INTO whatsapp_products
+            INSERT INTO gc_angglobal_products
             (id, tipo, nome, descricao, preco, imagem)
             VALUES ($1, $2, $3, $4, $5, $6)
             ON CONFLICT (id) DO UPDATE SET
@@ -129,7 +127,7 @@ app.post('/api/produtos', verificarAdmin, async (req, res) => {
         });
 
     } catch (erro) {
-        console.error('Erro ao guardar:', erro.message);
+        console.error('ERRO COMPLETO AO GUARDAR:', erro);
         res.status(500).json({
             erro: 'Não foi possível guardar o produto.'
         });
@@ -155,7 +153,7 @@ app.put('/api/produtos/:id', verificarAdmin, async (req, res) => {
         }
 
         const resultado = await pool.query(`
-            UPDATE whatsapp_products
+            UPDATE gc_angglobal_products
             SET
                 tipo = $1,
                 nome = $2,
@@ -200,7 +198,7 @@ app.delete('/api/produtos/:id', verificarAdmin, async (req, res) => {
         const { id } = req.params;
 
         const resultado = await pool.query(`
-            DELETE FROM whatsapp_products
+            DELETE FROM gc_angglobal_products
             WHERE id = $1
             RETURNING id
         `, [id]);

@@ -24,86 +24,62 @@ function formatarPreco(valor) {
 function mostrarProdutos() {
     listaProdutos.innerHTML = "";
 
+    if (produtos.length === 0) {
+        listaProdutos.innerHTML = `
+            <div class="sem-produtos">
+                Ainda não existem produtos ou serviços publicados.
+            </div>
+        `;
+        return;
+    }
+
     produtos.forEach(produto => {
         const card = document.createElement("article");
         card.className = "produto";
 
-        let imagem = "";
-
-        if (produto.imagem) {
-            imagem = `
-                <div class="produto-imagem">
-                    <img src="${produto.imagem}" alt="${produto.nome}">
+        const icone = produto.imagem
+            ? `
+                <div class="produto-visual">
+                    <img
+                        src="${produto.imagem}"
+                        alt="${produto.nome}"
+                    >
+                </div>
+            `
+            : `
+                <div class="produto-visual produto-sem-imagem">
+                    <span>
+                        ${produto.tipo === "servico" ? "🛠️" : "📦"}
+                    </span>
                 </div>
             `;
-        } else {
-            imagem = `
-                <div class="produto-imagem">
-                    Sem imagem
-                </div>
-            `;
-        }
 
         card.innerHTML = `
-            ${imagem}
+            ${icone}
 
             <div class="produto-conteudo">
                 <h2>${produto.nome}</h2>
 
-                <p class="produto-descricao">
-                    ${produto.descricao}
-                </p>
-
-                <div class="preco">
-                    ${formatarPreco(produto.preco)}
-                </div>
-
                 <button
-                    class="btn btn-adicionar"
-                    onclick="adicionarAoCarrinho(${produto.id})">
-                    ${produto.tipo === "servico" ? "Solicitar serviço" : "Adicionar ao pedido"}
+                    class="btn btn-ver-produto"
+                    type="button"
+                    onclick="verDetalhesProduto(${produto.id})">
+                    Ver produto
                 </button>
-
-                <div
-                    class="acoes-admin"
-                    data-admin-id="${produto.id}"
-                    style="display:none; margin-top:10px;">
-
-                    <button
-                        class="btn btn-editar"
-                        onclick="editarProduto(${produto.id})">
-                        ✏️ Editar
-                    </button>
-
-                    <button
-                        class="btn btn-eliminar"
-                        onclick="eliminarProduto(${produto.id})">
-                        🗑️ Eliminar
-                    </button>
-
-                </div>
             </div>
         `;
 
         listaProdutos.appendChild(card);
-    });
-
-    const adminLogado =
-        localStorage.getItem("whatsapp_shop_admin_token") ===
-        "whatsapp-shop-admin";
-
-    document.querySelectorAll(".acoes-admin").forEach(area => {
-        area.style.display = adminLogado ? "block" : "none";
     });
 }
 
 async function eliminarProduto(id) {
 
     const token = localStorage.getItem(
-        "whatsapp_shop_admin_token"
+        "gc_angglobal_admin_token"
     );
 
-    if (token !== "whatsapp-shop-admin") {
+    if (token !== "gc-angglobal-admin") {
         return;
     }
 
@@ -162,13 +138,121 @@ async function eliminarProduto(id) {
     }
 }
 
+
+function verDetalhesProduto(id) {
+    const produto = produtos.find(p => p.id === id);
+
+    if (!produto) {
+        return;
+    }
+
+    const detalhes = document.getElementById("detalhesProduto");
+    const conteudo = document.getElementById("detalhesProdutoConteudo");
+
+    const adminLogado =
+        localStorage.getItem("gc_angglobal_admin_token") ===
+        "gc-angglobal-admin";
+
+    const imagem = produto.imagem
+        ? `
+            <div class="detalhes-imagem">
+                <img
+                    src="${produto.imagem}"
+                    alt="${produto.nome}"
+                >
+            </div>
+        `
+        : `
+            <div class="detalhes-imagem detalhes-sem-imagem">
+                <span>
+                    ${produto.tipo === "servico" ? "🛠️" : "📦"}
+                </span>
+            </div>
+        `;
+
+    const acoesAdmin = adminLogado
+        ? `
+            <div class="acoes-admin-detalhes">
+                <button
+                    class="btn btn-editar"
+                    type="button"
+                    onclick="editarProduto(${produto.id}); fecharDetalhesProduto();">
+                    Editar
+                </button>
+
+                <button
+                    class="btn btn-eliminar"
+                    type="button"
+                    onclick="eliminarProduto(${produto.id});">
+                    Eliminar
+                </button>
+            </div>
+        `
+        : "";
+
+    conteudo.innerHTML = `
+        ${imagem}
+
+        <div class="detalhes-info">
+
+            <div class="detalhes-tipo">
+                ${produto.tipo === "servico" ? "SERVIÇO" : "PRODUTO"}
+            </div>
+
+            <h2>${produto.nome}</h2>
+
+            <div class="detalhes-preco">
+                ${formatarPreco(produto.preco)}
+            </div>
+
+            <div class="detalhes-descricao">
+                ${produto.descricao}
+            </div>
+
+            <button
+                class="btn btn-adicionar detalhes-btn-adicionar"
+                type="button"
+                onclick="adicionarAoCarrinho(${produto.id}); fecharDetalhesProduto();">
+                ${produto.tipo === "servico"
+                    ? "Solicitar serviço"
+                    : "Adicionar ao pedido"}
+            </button>
+
+            ${acoesAdmin}
+
+        </div>
+    `;
+
+    detalhes.classList.remove("fechado");
+
+    document.body.classList.add("produto-aberto");
+}
+
+function fecharDetalhesProduto() {
+    const detalhes = document.getElementById("detalhesProduto");
+
+    if (detalhes) {
+        detalhes.classList.add("fechado");
+    }
+
+    document.body.classList.remove("produto-aberto");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const btnFechar = document.getElementById("fecharDetalhesProduto");
+
+    if (btnFechar) {
+        btnFechar.addEventListener("click", fecharDetalhesProduto);
+    }
+});
+
 function editarProduto(id) {
 
     const token = localStorage.getItem(
-        "whatsapp_shop_admin_token"
+        "gc_angglobal_admin_token"
     );
 
-    if (token !== "whatsapp-shop-admin") {
+    if (token !== "gc-angglobal-admin") {
         return;
     }
 

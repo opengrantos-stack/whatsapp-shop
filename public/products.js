@@ -21,7 +21,14 @@ async function carregarProdutos() {
     } catch (erro) {
         console.error("Erro ao carregar produtos:", erro);
 
-        produtos = [];
+        produtos = [{
+            id: 999999,
+            tipo: "produto",
+            nome: "Produto de teste",
+            descricao: "Este é apenas um produto temporário para testar a nova apresentação e a área de detalhes.",
+            preco: 15000,
+            imagem: ""
+        }];
 
         mostrarProdutos();
     }

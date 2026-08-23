@@ -10,10 +10,10 @@ document.addEventListener("DOMContentLoaded", function () {
     btnGerir.addEventListener("click", function () {
 
         const token = localStorage.getItem(
-            "whatsapp_shop_admin_token"
+            "gc_angglobal_admin_token"
         );
 
-        if (token !== "whatsapp-shop-admin") {
+        if (token !== "gc-angglobal-admin") {
             const mensagemLogin =
                 document.getElementById("mensagemLoginAdmin");
 
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
                           "Authorization":
                               "Bearer " +
                               localStorage.getItem(
-                                  "whatsapp_shop_admin_token"
+                                  "gc_angglobal_admin_token"
                               )
                       },
                       body: JSON.stringify(novoProduto)
@@ -257,7 +257,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             localStorage.setItem(
-                "whatsapp_shop_admin_token",
+                "gc_angglobal_admin_token",
                 resultado.token
             );
 
@@ -298,10 +298,10 @@ document.addEventListener("DOMContentLoaded", function () {
     function atualizarEstadoAdmin() {
 
         const token = localStorage.getItem(
-            "whatsapp_shop_admin_token"
+            "gc_angglobal_admin_token"
         );
 
-        if (token === "whatsapp-shop-admin") {
+        if (token === "gc-angglobal-admin") {
             senhaAdmin.style.display = "none";
             btnLoginAdmin.style.display = "none";
             btnSairAdmin.style.display = "block";
@@ -315,7 +315,7 @@ document.addEventListener("DOMContentLoaded", function () {
     btnSairAdmin.addEventListener("click", function () {
 
         localStorage.removeItem(
-            "whatsapp_shop_admin_token"
+            "gc_angglobal_admin_token"
         );
 
         formulario.classList.add("fechado");
