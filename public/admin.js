@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
             "gc_angglobal_admin_token"
         );
 
-        if (token !== "gc-angglobal-admin") {
+        if (!token) {
             const mensagemLogin =
                 document.getElementById("mensagemLoginAdmin");
 
@@ -301,7 +301,7 @@ document.addEventListener("DOMContentLoaded", function () {
             "gc_angglobal_admin_token"
         );
 
-        if (token === "gc-angglobal-admin") {
+        if (token) {
             senhaAdmin.style.display = "none";
             btnLoginAdmin.style.display = "none";
             btnSairAdmin.style.display = "block";

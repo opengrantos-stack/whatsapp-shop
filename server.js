@@ -55,7 +55,15 @@ app.get('/api/produtos', async (req, res) => {
 });
 
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '123456';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!ADMIN_PASSWORD) {
+    console.error('ERRO: ADMIN_PASSWORD não configurada no ambiente.');
+    process.exit(1);
+}
+const crypto = require('crypto');
+const ADMIN_TOKEN =
+    process.env.ADMIN_TOKEN || crypto.randomBytes(32).toString('hex');
 
 app.post('/api/admin/login', (req, res) => {
     const { password } = req.body;
@@ -68,7 +76,7 @@ app.post('/api/admin/login', (req, res) => {
 
     res.json({
         sucesso: true,
-        token: 'gc-angglobal-admin'
+        token: ADMIN_TOKEN
     });
 });
 
@@ -76,7 +84,7 @@ app.post('/api/admin/login', (req, res) => {
 function verificarAdmin(req, res, next) {
     const autorizacao = req.headers.authorization;
 
-    if (autorizacao !== 'Bearer gc-angglobal-admin') {
+    if (autorizacao !== `Bearer ${ADMIN_TOKEN}`) {
         return res.status(401).json({
             erro: 'É necessário entrar como administrador.'
         });

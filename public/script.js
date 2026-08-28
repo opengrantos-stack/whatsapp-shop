@@ -79,7 +79,7 @@ async function eliminarProduto(id) {
         "gc_angglobal_admin_token"
     );
 
-    if (token !== "gc-angglobal-admin") {
+    if (!token) {
         return;
     }
 
@@ -150,8 +150,7 @@ function verDetalhesProduto(id) {
     const conteudo = document.getElementById("detalhesProdutoConteudo");
 
     const adminLogado =
-        localStorage.getItem("gc_angglobal_admin_token") ===
-        "gc-angglobal-admin";
+        !!localStorage.getItem("gc_angglobal_admin_token");
 
     const imagem = produto.imagem
         ? `
@@ -252,7 +251,7 @@ function editarProduto(id) {
         "gc_angglobal_admin_token"
     );
 
-    if (token !== "gc-angglobal-admin") {
+    if (!token) {
         return;
     }
 
