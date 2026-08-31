@@ -53,16 +53,32 @@ document.addEventListener("DOMContentLoaded", function () {
         carregarLojasNoFormulario();
 
 
-        const token = localStorage.getItem(
+        const tokenAdmin = localStorage.getItem(
             "gc_angglobal_admin_token"
         );
 
-        if (token !== "gc-angglobal-admin") {
+        const tokenVendedor = localStorage.getItem(
+            "gc_angglobal_seller_token"
+        );
+
+        const seletorLoja =
+            document.getElementById("lojaProduto");
+
+        const ehAdmin =
+            tokenAdmin === "gc-angglobal-admin";
+
+        const ehVendedor =
+            !!tokenVendedor;
+
+        if (!ehAdmin && !ehVendedor) {
+
             const mensagemLogin =
-                document.getElementById("mensagemLoginAdmin");
+                document.getElementById(
+                    "mensagemLoginAdmin"
+                );
 
             mensagemLogin.textContent =
-                "Entre como administrador primeiro.";
+                "Entre como administrador ou vendedor primeiro.";
 
             document.getElementById(
                 "areaLoginAdmin"
@@ -71,10 +87,51 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        if (ehVendedor && !ehAdmin) {
+
+            seletorLoja.innerHTML =
+                '<option value="minha-loja">Minha loja</option>';
+
+            seletorLoja.value =
+                "minha-loja";
+
+            seletorLoja.style.display =
+                "none";
+
+            const labelLoja =
+                document.querySelector(
+                    'label[for="lojaProduto"]'
+                );
+
+            if (labelLoja) {
+                labelLoja.style.display =
+                    "none";
+            }
+
+        } else {
+
+            seletorLoja.style.display =
+                "block";
+
+            const labelLoja =
+                document.querySelector(
+                    'label[for="lojaProduto"]'
+                );
+
+            if (labelLoja) {
+                labelLoja.style.display =
+                    "block";
+            }
+
+            carregarLojasNoFormulario();
+        }
+
         formulario.classList.toggle("fechado");
 
         setaGerir.textContent =
-            formulario.classList.contains("fechado") ? "▼" : "▲";
+            formulario.classList.contains("fechado")
+                ? "▼"
+                : "▲";
     });
 
     btnPublicar.addEventListener("click", async function () {
@@ -86,9 +143,36 @@ document.addEventListener("DOMContentLoaded", function () {
         const preco = Number(document.getElementById("precoProduto").value);
         const arquivo = document.getElementById("imagemProduto").files[0] || document.getElementById("cameraProduto").files[0];
 
-        if (!lojaId) {
+        const tokenAdminAtual =
+            localStorage.getItem(
+                "gc_angglobal_admin_token"
+            );
+
+        const tokenVendedorAtual =
+            localStorage.getItem(
+                "gc_angglobal_seller_token"
+            );
+
+        const ehAdminAtual =
+            tokenAdminAtual ===
+            "gc-angglobal-admin";
+
+        const ehVendedorAtual =
+            !!tokenVendedorAtual;
+
+        if (!ehAdminAtual && !ehVendedorAtual) {
+
+            mensagem.textContent =
+                "Entre como administrador ou vendedor primeiro.";
+
+            return;
+        }
+
+        if (ehAdminAtual && !lojaId) {
+
             mensagem.textContent =
                 "Selecione uma loja antes de publicar.";
+
             return;
         }
 
@@ -110,9 +194,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 nome,
                 descricao,
                 preco,
-                imagem: imagem || "",
-                loja_id: Number(lojaId)
+                imagem: imagem || ""
             };
+
+            if (ehAdminAtual) {
+                novoProduto.loja_id =
+                    Number(lojaId);
+            }
 
               try {
 
@@ -133,8 +221,10 @@ document.addEventListener("DOMContentLoaded", function () {
                           "Content-Type": "application/json",
                           "Authorization":
                               "Bearer " +
-                              localStorage.getItem(
-                                  "gc_angglobal_admin_token"
+                              (
+                                  ehAdminAtual
+                                      ? tokenAdminAtual
+                                      : tokenVendedorAtual
                               )
                       },
                       body: JSON.stringify(novoProduto)
@@ -647,5 +737,539 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Não foi possível criar a loja.";
         }
     });
+
+});
+
+
+// ==================== GC-ANGGLOBAL ÁREA DO VENDEDOR ====================
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const btnVendedor =
+        document.getElementById("btnVendedor");
+
+    const areaVendedor =
+        document.getElementById("areaVendedor");
+
+    const painelDeslogado =
+        document.getElementById(
+            "painelVendedorDeslogado"
+        );
+
+    const painelLogado =
+        document.getElementById(
+            "painelVendedorLogado"
+        );
+
+    const mensagemVendedor =
+        document.getElementById(
+            "mensagemVendedor"
+        );
+
+    const mensagemMinhaLoja =
+        document.getElementById(
+            "mensagemMinhaLoja"
+        );
+
+    const nomeVendedorLogado =
+        document.getElementById(
+            "nomeVendedorLogado"
+        );
+
+    const btnCriarConta =
+        document.getElementById(
+            "btnCriarContaVendedor"
+        );
+
+    const btnLogin =
+        document.getElementById(
+            "btnLoginVendedor"
+        );
+
+    const btnCriarMinhaLoja =
+        document.getElementById(
+            "btnCriarMinhaLoja"
+        );
+
+    const btnSairVendedor =
+        document.getElementById(
+            "btnSairVendedor"
+        );
+
+    function tokenVendedor() {
+        return localStorage.getItem(
+            "gc_angglobal_seller_token"
+        );
+    }
+
+    function vendedorGuardado() {
+
+        try {
+            const dados = localStorage.getItem(
+                "gc_angglobal_seller"
+            );
+
+            return dados
+                ? JSON.parse(dados)
+                : null;
+
+        } catch (erro) {
+            return null;
+        }
+    }
+
+    function atualizarPainelVendedor() {
+
+        const token = tokenVendedor();
+        const vendedor = vendedorGuardado();
+
+        if (token && vendedor) {
+
+            painelDeslogado.style.display = "none";
+            painelLogado.style.display = "block";
+
+            nomeVendedorLogado.textContent =
+                "👤 " + vendedor.nome;
+
+            mensagemVendedor.textContent =
+                "Sessão de vendedor ativa.";
+
+        } else {
+
+            painelDeslogado.style.display = "block";
+            painelLogado.style.display = "none";
+
+            mensagemVendedor.textContent = "";
+        }
+    }
+
+    async function carregarMinhaLoja() {
+
+        const token = tokenVendedor();
+
+        if (!token) {
+            return;
+        }
+
+        try {
+
+            const resposta = await fetch(
+                "/api/vendedores/minha-loja",
+                {
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                }
+            );
+
+            const resultado =
+                await resposta.json();
+
+            if (resposta.status === 404) {
+
+                mensagemMinhaLoja.textContent =
+                    "Você ainda não possui uma loja.";
+
+                return;
+            }
+
+            if (!resposta.ok) {
+                throw new Error(
+                    resultado.erro ||
+                    "Não foi possível carregar sua loja."
+                );
+            }
+
+            const loja = resultado.loja;
+
+            document.getElementById(
+                "nomeMinhaLoja"
+            ).value = loja.nome || "";
+
+            document.getElementById(
+                "descricaoMinhaLoja"
+            ).value = loja.descricao || "";
+
+            document.getElementById(
+                "whatsappMinhaLoja"
+            ).value = loja.whatsapp || "";
+
+            mensagemMinhaLoja.textContent =
+                "🏪 Loja ativa: " + loja.nome;
+
+            btnCriarMinhaLoja.style.display =
+                "none";
+
+        } catch (erro) {
+
+            console.error(
+                "Erro ao carregar minha loja:",
+                erro
+            );
+
+            mensagemMinhaLoja.textContent =
+                erro.message ||
+                "Não foi possível carregar sua loja.";
+        }
+    }
+
+    btnVendedor.addEventListener(
+        "click",
+        async function () {
+
+            areaVendedor.classList.toggle(
+                "fechado"
+            );
+
+            if (
+                !areaVendedor.classList.contains(
+                    "fechado"
+                )
+            ) {
+
+                atualizarPainelVendedor();
+
+                if (tokenVendedor()) {
+                    await carregarMinhaLoja();
+                }
+            }
+        }
+    );
+
+
+    // ==================== CRIAR CONTA ====================
+
+    btnCriarConta.addEventListener(
+        "click",
+        async function () {
+
+            const nome =
+                document.getElementById(
+                    "nomeVendedor"
+                ).value.trim();
+
+            const email =
+                document.getElementById(
+                    "emailVendedor"
+                ).value.trim();
+
+            const telefone =
+                document.getElementById(
+                    "telefoneVendedor"
+                ).value.trim();
+
+            const senha =
+                document.getElementById(
+                    "senhaNovoVendedor"
+                ).value;
+
+            mensagemVendedor.textContent = "";
+
+            if (!nome || !email || !senha) {
+
+                mensagemVendedor.textContent =
+                    "Preencha nome, email e senha.";
+
+                return;
+            }
+
+            btnCriarConta.disabled = true;
+            btnCriarConta.textContent =
+                "A criar...";
+
+            try {
+
+                const resposta = await fetch(
+                    "/api/vendedores/cadastro",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            nome,
+                            email,
+                            telefone,
+                            senha
+                        })
+                    }
+                );
+
+                const resultado =
+                    await resposta.json();
+
+                if (!resposta.ok) {
+
+                    throw new Error(
+                        resultado.erro ||
+                        "Não foi possível criar a conta."
+                    );
+                }
+
+                mensagemVendedor.textContent =
+                    "Conta criada. Agora entre com o seu email e senha.";
+
+                document.getElementById(
+                    "senhaNovoVendedor"
+                ).value = "";
+
+            } catch (erro) {
+
+                console.error(erro);
+
+                mensagemVendedor.textContent =
+                    erro.message ||
+                    "Não foi possível criar a conta.";
+
+            } finally {
+
+                btnCriarConta.disabled = false;
+
+                btnCriarConta.textContent =
+                    "Criar conta";
+            }
+        }
+    );
+
+
+    // ==================== LOGIN ====================
+
+    btnLogin.addEventListener(
+        "click",
+        async function () {
+
+            const email =
+                document.getElementById(
+                    "emailLoginVendedor"
+                ).value.trim();
+
+            const senha =
+                document.getElementById(
+                    "senhaLoginVendedor"
+                ).value;
+
+            mensagemVendedor.textContent = "";
+
+            if (!email || !senha) {
+
+                mensagemVendedor.textContent =
+                    "Digite o email e a senha.";
+
+                return;
+            }
+
+            btnLogin.disabled = true;
+            btnLogin.textContent =
+                "A entrar...";
+
+            try {
+
+                const resposta = await fetch(
+                    "/api/vendedores/login",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            email,
+                            senha
+                        })
+                    }
+                );
+
+                const resultado =
+                    await resposta.json();
+
+                if (!resposta.ok) {
+
+                    throw new Error(
+                        resultado.erro ||
+                        "Não foi possível entrar."
+                    );
+                }
+
+                localStorage.setItem(
+                    "gc_angglobal_seller_token",
+                    resultado.token
+                );
+
+                localStorage.setItem(
+                    "gc_angglobal_seller",
+                    JSON.stringify(
+                        resultado.vendedor
+                    )
+                );
+
+                atualizarPainelVendedor();
+
+                await carregarMinhaLoja();
+
+            } catch (erro) {
+
+                console.error(erro);
+
+                mensagemVendedor.textContent =
+                    erro.message ||
+                    "Não foi possível entrar.";
+
+            } finally {
+
+                btnLogin.disabled = false;
+
+                btnLogin.textContent =
+                    "Entrar como vendedor";
+            }
+        }
+    );
+
+
+    // ==================== CRIAR MINHA LOJA ====================
+
+    btnCriarMinhaLoja.addEventListener(
+        "click",
+        async function () {
+
+            const nome =
+                document.getElementById(
+                    "nomeMinhaLoja"
+                ).value.trim();
+
+            const descricao =
+                document.getElementById(
+                    "descricaoMinhaLoja"
+                ).value.trim();
+
+            const whatsapp =
+                document.getElementById(
+                    "whatsappMinhaLoja"
+                ).value.trim();
+
+            if (!nome) {
+
+                mensagemMinhaLoja.textContent =
+                    "Digite o nome da sua loja.";
+
+                return;
+            }
+
+            const token = tokenVendedor();
+
+            if (!token) {
+
+                mensagemMinhaLoja.textContent =
+                    "Sessão de vendedor não encontrada.";
+
+                return;
+            }
+
+            btnCriarMinhaLoja.disabled = true;
+
+            btnCriarMinhaLoja.textContent =
+                "A criar...";
+
+            try {
+
+                const resposta = await fetch(
+                    "/api/vendedores/minha-loja",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+
+                            "Authorization":
+                                "Bearer " + token
+                        },
+
+                        body: JSON.stringify({
+                            nome,
+                            descricao,
+                            whatsapp
+                        })
+                    }
+                );
+
+                const resultado =
+                    await resposta.json();
+
+                if (!resposta.ok) {
+
+                    throw new Error(
+                        resultado.erro ||
+                        "Não foi possível criar sua loja."
+                    );
+                }
+
+                mensagemMinhaLoja.textContent =
+                    "🏪 Sua loja foi criada com sucesso.";
+
+                btnCriarMinhaLoja.style.display =
+                    "none";
+
+            } catch (erro) {
+
+                console.error(erro);
+
+                mensagemMinhaLoja.textContent =
+                    erro.message ||
+                    "Não foi possível criar sua loja.";
+
+            } finally {
+
+                btnCriarMinhaLoja.disabled = false;
+
+                btnCriarMinhaLoja.textContent =
+                    "Criar minha loja";
+            }
+        }
+    );
+
+
+    // ==================== SAIR ====================
+
+    btnSairVendedor.addEventListener(
+        "click",
+        function () {
+
+            localStorage.removeItem(
+                "gc_angglobal_seller_token"
+            );
+
+            localStorage.removeItem(
+                "gc_angglobal_seller"
+            );
+
+            mensagemMinhaLoja.textContent = "";
+
+            document.getElementById(
+                "nomeMinhaLoja"
+            ).value = "";
+
+            document.getElementById(
+                "descricaoMinhaLoja"
+            ).value = "";
+
+            document.getElementById(
+                "whatsappMinhaLoja"
+            ).value = "";
+
+            btnCriarMinhaLoja.style.display =
+                "block";
+
+            atualizarPainelVendedor();
+        }
+    );
+
+
+    atualizarPainelVendedor();
 
 });

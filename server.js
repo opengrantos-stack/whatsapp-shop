@@ -22,6 +22,18 @@ async function prepararBanco() {
 
     try {
         await pool.query(`
+            CREATE TABLE IF NOT EXISTS gc_angglobal_sellers (
+                id BIGSERIAL PRIMARY KEY,
+                nome TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                telefone TEXT DEFAULT '',
+                senha TEXT NOT NULL,
+                ativo BOOLEAN DEFAULT TRUE,
+                criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS gc_angglobal_stores (
                 id BIGSERIAL PRIMARY KEY,
                 nome TEXT NOT NULL,
@@ -44,6 +56,16 @@ async function prepararBanco() {
                 loja_id BIGINT,
                 criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        `);
+
+        await pool.query(`
+            ALTER TABLE gc_angglobal_stores
+            ADD COLUMN IF NOT EXISTS vendedor_id BIGINT
+        `);
+
+        await pool.query(`
+            CREATE INDEX IF NOT EXISTS idx_gc_angglobal_stores_vendedor
+            ON gc_angglobal_stores(vendedor_id)
         `);
 
         await pool.query(`
@@ -109,6 +131,290 @@ function verificarAdmin(req, res, next) {
 
     next();
 }
+
+
+// ==================== CONTAS DE VENDEDORES ====================
+
+app.post('/api/vendedores/cadastro', async (req, res) => {
+    try {
+        const {
+            nome,
+            email,
+            telefone,
+            senha
+        } = req.body;
+
+        if (!nome || !email || !senha) {
+            return res.status(400).json({
+                erro: 'Nome, email e senha são obrigatórios.'
+            });
+        }
+
+        if (senha.length < 6) {
+            return res.status(400).json({
+                erro: 'A senha deve ter pelo menos 6 caracteres.'
+            });
+        }
+
+        const resultado = await pool.query(`
+            INSERT INTO gc_angglobal_sellers
+            (nome, email, telefone, senha)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id, nome, email, telefone, ativo, criado_em
+        `, [
+            nome.trim(),
+            email.trim().toLowerCase(),
+            telefone || '',
+            senha
+        ]);
+
+        res.status(201).json({
+            sucesso: true,
+            mensagem: 'Conta criada com sucesso.',
+            vendedor: resultado.rows[0]
+        });
+
+    } catch (erro) {
+
+        if (erro.code === '23505') {
+            return res.status(409).json({
+                erro: 'Este email já está registado.'
+            });
+        }
+
+        console.error('Erro ao cadastrar vendedor:', erro.message);
+
+        res.status(500).json({
+            erro: 'Não foi possível criar a conta.'
+        });
+    }
+});
+
+
+app.post('/api/vendedores/login', async (req, res) => {
+    try {
+
+        const {
+            email,
+            senha
+        } = req.body;
+
+        if (!email || !senha) {
+            return res.status(400).json({
+                erro: 'Email e senha são obrigatórios.'
+            });
+        }
+
+        const resultado = await pool.query(`
+            SELECT id, nome, email, telefone, ativo, senha
+            FROM gc_angglobal_sellers
+            WHERE email = $1
+            LIMIT 1
+        `, [
+            email.trim().toLowerCase()
+        ]);
+
+        if (resultado.rowCount === 0) {
+            return res.status(401).json({
+                erro: 'Email ou senha incorretos.'
+            });
+        }
+
+        const vendedor = resultado.rows[0];
+
+        if (!vendedor.ativo) {
+            return res.status(403).json({
+                erro: 'Esta conta está desativada.'
+            });
+        }
+
+        if (senha !== vendedor.senha) {
+            return res.status(401).json({
+                erro: 'Email ou senha incorretos.'
+            });
+        }
+
+        delete vendedor.senha;
+
+        const token = 'gc-angglobal-seller-' + vendedor.id;
+
+        res.json({
+            sucesso: true,
+            mensagem: 'Login efetuado com sucesso.',
+            token,
+            vendedor
+        });
+
+    } catch (erro) {
+
+        console.error('Erro no login do vendedor:', erro.message);
+
+        res.status(500).json({
+            erro: 'Não foi possível efetuar o login.'
+        });
+    }
+});
+
+
+async function obterVendedorPorToken(req) {
+
+    const autorizacao = req.headers.authorization;
+
+    console.log('DEBUG AUTHORIZATION:', JSON.stringify(autorizacao));
+
+    if (!autorizacao) {
+        return null;
+    }
+
+    const prefixo = 'Bearer gc-angglobal-seller-';
+
+    if (!autorizacao.startsWith(prefixo)) {
+        return null;
+    }
+
+    const id = autorizacao.substring(prefixo.length);
+
+    if (!/^\d+$/.test(id)) {
+        return null;
+    }
+
+    const resultado = await pool.query(`
+        SELECT id, nome, email, telefone, ativo
+        FROM gc_angglobal_sellers
+        WHERE id = $1
+        LIMIT 1
+    `, [id]);
+
+    if (resultado.rowCount === 0) {
+        return null;
+    }
+
+    if (!resultado.rows[0].ativo) {
+        return null;
+    }
+
+    return resultado.rows[0];
+}
+
+
+async function verificarVendedor(req, res, next) {
+
+    try {
+
+        const vendedor = await obterVendedorPorToken(req);
+
+        if (!vendedor) {
+            return res.status(401).json({
+                erro: 'É necessário entrar como vendedor.'
+            });
+        }
+
+        req.vendedor = vendedor;
+
+        next();
+
+    } catch (erro) {
+
+        console.error(
+            'Erro ao verificar vendedor:',
+            erro.message
+        );
+
+        res.status(500).json({
+            erro: 'Não foi possível validar a conta.'
+        });
+    }
+}
+
+
+// ==================== LOJA DO VENDEDOR ====================
+
+app.post('/api/vendedores/minha-loja', verificarVendedor, async (req, res) => {
+    try {
+        const {
+            nome,
+            descricao,
+            logo,
+            whatsapp
+        } = req.body;
+
+        if (!nome || !nome.trim()) {
+            return res.status(400).json({
+                erro: 'O nome da loja é obrigatório.'
+            });
+        }
+
+        const existente = await pool.query(`
+            SELECT id, nome, descricao, logo, whatsapp, ativo, criado_em
+            FROM gc_angglobal_stores
+            WHERE vendedor_id = $1
+            LIMIT 1
+        `, [req.vendedor.id]);
+
+        if (existente.rowCount > 0) {
+            return res.status(409).json({
+                erro: 'Este vendedor já possui uma loja.',
+                loja: existente.rows[0]
+            });
+        }
+
+        const resultado = await pool.query(`
+            INSERT INTO gc_angglobal_stores
+            (nome, descricao, logo, whatsapp, vendedor_id)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING id, nome, descricao, logo, whatsapp, ativo, vendedor_id, criado_em
+        `, [
+            nome.trim(),
+            descricao || '',
+            logo || '',
+            whatsapp || '',
+            req.vendedor.id
+        ]);
+
+        res.status(201).json({
+            sucesso: true,
+            mensagem: 'Sua loja foi criada com sucesso.',
+            loja: resultado.rows[0]
+        });
+
+    } catch (erro) {
+        console.error('Erro ao criar loja do vendedor:', erro.message);
+
+        res.status(500).json({
+            erro: 'Não foi possível criar sua loja.'
+        });
+    }
+});
+
+
+app.get('/api/vendedores/minha-loja', verificarVendedor, async (req, res) => {
+    try {
+        const resultado = await pool.query(`
+            SELECT id, nome, descricao, logo, whatsapp, ativo, vendedor_id, criado_em
+            FROM gc_angglobal_stores
+            WHERE vendedor_id = $1
+            LIMIT 1
+        `, [req.vendedor.id]);
+
+        if (resultado.rowCount === 0) {
+            return res.status(404).json({
+                erro: 'Você ainda não possui uma loja.'
+            });
+        }
+
+        res.json({
+            sucesso: true,
+            loja: resultado.rows[0]
+        });
+
+    } catch (erro) {
+        console.error('Erro ao buscar loja do vendedor:', erro.message);
+
+        res.status(500).json({
+            erro: 'Não foi possível carregar sua loja.'
+        });
+    }
+});
 
 
 // ==================== API DE LOJAS ====================
@@ -285,7 +591,7 @@ app.get('/api/lojas/:id/produtos', async (req, res) => {
 });
 
 
-app.post('/api/produtos', verificarAdmin, async (req, res) => {
+app.post('/api/produtos', verificarVendedor, async (req, res) => {
     try {
         const {
             id,
@@ -293,8 +599,7 @@ app.post('/api/produtos', verificarAdmin, async (req, res) => {
             nome,
             descricao,
             preco,
-            imagem,
-            loja_id
+            imagem
         } = req.body;
 
         if (!id || !tipo || !nome || !descricao || !preco) {
@@ -302,6 +607,22 @@ app.post('/api/produtos', verificarAdmin, async (req, res) => {
                 erro: 'Dados incompletos.'
             });
         }
+
+        const loja = await pool.query(`
+            SELECT id
+            FROM gc_angglobal_stores
+            WHERE vendedor_id = $1
+              AND ativo = TRUE
+            LIMIT 1
+        `, [req.vendedor.id]);
+
+        if (loja.rowCount === 0) {
+            return res.status(404).json({
+                erro: 'Você ainda não possui uma loja ativa.'
+            });
+        }
+
+        const lojaId = loja.rows[0].id;
 
         await pool.query(`
             INSERT INTO gc_angglobal_products
@@ -321,16 +642,18 @@ app.post('/api/produtos', verificarAdmin, async (req, res) => {
             descricao,
             preco,
             imagem || '',
-            loja_id || null
+            lojaId
         ]);
 
         res.json({
             sucesso: true,
-            mensagem: 'Produto/serviço guardado.'
+            mensagem: 'Produto/serviço guardado.',
+            loja_id: lojaId
         });
 
     } catch (erro) {
-        console.error('ERRO COMPLETO AO GUARDAR:', erro);
+        console.error('ERRO AO GUARDAR PRODUTO:', erro.message);
+
         res.status(500).json({
             erro: 'Não foi possível guardar o produto.'
         });
@@ -338,16 +661,16 @@ app.post('/api/produtos', verificarAdmin, async (req, res) => {
 });
 
 
-app.put('/api/produtos/:id', verificarAdmin, async (req, res) => {
+app.put('/api/produtos/:id', verificarVendedor, async (req, res) => {
     try {
         const { id } = req.params;
+
         const {
             tipo,
             nome,
             descricao,
             preco,
-            imagem,
-            loja_id
+            imagem
         } = req.body;
 
         if (!tipo || !nome || !descricao || !preco) {
@@ -356,6 +679,22 @@ app.put('/api/produtos/:id', verificarAdmin, async (req, res) => {
             });
         }
 
+        const loja = await pool.query(`
+            SELECT id
+            FROM gc_angglobal_stores
+            WHERE vendedor_id = $1
+              AND ativo = TRUE
+            LIMIT 1
+        `, [req.vendedor.id]);
+
+        if (loja.rowCount === 0) {
+            return res.status(404).json({
+                erro: 'Você ainda não possui uma loja ativa.'
+            });
+        }
+
+        const lojaId = loja.rows[0].id;
+
         const resultado = await pool.query(`
             UPDATE gc_angglobal_products
             SET
@@ -363,9 +702,9 @@ app.put('/api/produtos/:id', verificarAdmin, async (req, res) => {
                 nome = $2,
                 descricao = $3,
                 preco = $4,
-                imagem = $5,
-                loja_id = $6
-            WHERE id = $7
+                imagem = $5
+            WHERE id = $6
+              AND loja_id = $7
             RETURNING id, tipo, nome, descricao, preco, imagem, loja_id
         `, [
             tipo,
@@ -373,13 +712,13 @@ app.put('/api/produtos/:id', verificarAdmin, async (req, res) => {
             descricao,
             preco,
             imagem || '',
-            loja_id || null,
-            id
+            id,
+            lojaId
         ]);
 
         if (resultado.rowCount === 0) {
             return res.status(404).json({
-                erro: 'Produto/serviço não encontrado.'
+                erro: 'Produto não encontrado na sua loja.'
             });
         }
 
@@ -390,7 +729,7 @@ app.put('/api/produtos/:id', verificarAdmin, async (req, res) => {
         });
 
     } catch (erro) {
-        console.error('Erro ao editar:', erro.message);
+        console.error('ERRO AO EDITAR PRODUTO:', erro.message);
 
         res.status(500).json({
             erro: 'Não foi possível editar o produto/serviço.'
@@ -399,19 +738,36 @@ app.put('/api/produtos/:id', verificarAdmin, async (req, res) => {
 });
 
 
-app.delete('/api/produtos/:id', verificarAdmin, async (req, res) => {
+app.delete('/api/produtos/:id', verificarVendedor, async (req, res) => {
     try {
         const { id } = req.params;
+
+        const loja = await pool.query(`
+            SELECT id
+            FROM gc_angglobal_stores
+            WHERE vendedor_id = $1
+              AND ativo = TRUE
+            LIMIT 1
+        `, [req.vendedor.id]);
+
+        if (loja.rowCount === 0) {
+            return res.status(404).json({
+                erro: 'Você ainda não possui uma loja ativa.'
+            });
+        }
+
+        const lojaId = loja.rows[0].id;
 
         const resultado = await pool.query(`
             DELETE FROM gc_angglobal_products
             WHERE id = $1
+              AND loja_id = $2
             RETURNING id
-        `, [id]);
+        `, [id, lojaId]);
 
         if (resultado.rowCount === 0) {
             return res.status(404).json({
-                erro: 'Produto/serviço não encontrado.'
+                erro: 'Produto não encontrado na sua loja.'
             });
         }
 
@@ -421,7 +777,7 @@ app.delete('/api/produtos/:id', verificarAdmin, async (req, res) => {
         });
 
     } catch (erro) {
-        console.error('Erro ao eliminar:', erro.message);
+        console.error('ERRO AO ELIMINAR PRODUTO:', erro.message);
 
         res.status(500).json({
             erro: 'Não foi possível eliminar o produto/serviço.'
@@ -429,7 +785,6 @@ app.delete('/api/produtos/:id', verificarAdmin, async (req, res) => {
     }
 });
 
-prepararBanco();
 
 app.listen(port, () => {
     console.log('Servidor a rodar em http://localhost:' + port);

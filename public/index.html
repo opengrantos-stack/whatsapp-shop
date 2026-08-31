@@ -18,6 +18,136 @@
 
 <main class="container">
 
+    <!-- ==================== ÁREA DO VENDEDOR ==================== -->
+
+    <section class="secao-vendedor">
+
+        <button id="btnVendedor" class="btn-secao" type="button">
+            👤 ÁREA DO VENDEDOR
+        </button>
+
+        <div id="areaVendedor" class="formulario fechado">
+
+            <h2>Área do Vendedor</h2>
+
+            <div id="painelVendedorDeslogado">
+
+                <h3>Criar conta</h3>
+
+                <input
+                    type="text"
+                    id="nomeVendedor"
+                    placeholder="Seu nome"
+                >
+
+                <input
+                    type="email"
+                    id="emailVendedor"
+                    placeholder="Seu email"
+                >
+
+                <input
+                    type="tel"
+                    id="telefoneVendedor"
+                    placeholder="Telefone / WhatsApp"
+                >
+
+                <input
+                    type="password"
+                    id="senhaNovoVendedor"
+                    placeholder="Crie uma senha (mínimo 6 caracteres)"
+                >
+
+                <button
+                    id="btnCriarContaVendedor"
+                    class="btn btn-publicar"
+                    type="button">
+                    Criar conta
+                </button>
+
+                <hr>
+
+                <h3>Entrar</h3>
+
+                <input
+                    type="email"
+                    id="emailLoginVendedor"
+                    placeholder="Seu email"
+                >
+
+                <input
+                    type="password"
+                    id="senhaLoginVendedor"
+                    placeholder="Sua senha"
+                >
+
+                <button
+                    id="btnLoginVendedor"
+                    class="btn btn-publicar"
+                    type="button">
+                    Entrar como vendedor
+                </button>
+
+            </div>
+
+
+            <div
+                id="painelVendedorLogado"
+                style="display:none;">
+
+                <h3 id="nomeVendedorLogado">
+                    Vendedor
+                </h3>
+
+                <p id="mensagemVendedor"></p>
+
+                <div id="areaMinhaLoja">
+
+                    <h3>Minha Loja</h3>
+
+                    <input
+                        type="text"
+                        id="nomeMinhaLoja"
+                        placeholder="Nome da sua loja"
+                    >
+
+                    <textarea
+                        id="descricaoMinhaLoja"
+                        placeholder="Descrição da sua loja"
+                        rows="3"
+                    ></textarea>
+
+                    <input
+                        type="tel"
+                        id="whatsappMinhaLoja"
+                        placeholder="WhatsApp da loja"
+                    >
+
+                    <button
+                        id="btnCriarMinhaLoja"
+                        class="btn btn-publicar"
+                        type="button">
+                        Criar minha loja
+                    </button>
+
+                    <p id="mensagemMinhaLoja"></p>
+
+                </div>
+
+                <button
+                    id="btnSairVendedor"
+                    class="btn"
+                    type="button">
+                    🚪 Sair da conta
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
     <section class="secao-admin">
         <button id="btnAdmin" class="btn-secao" type="button">
             🔐 ADMINISTRADOR
