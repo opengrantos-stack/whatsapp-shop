@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 
@@ -430,7 +431,7 @@ app.get('/api/lojas', async (req, res) => {
 
         res.json(resultado.rows);
     } catch (erro) {
-        console.error('Erro ao buscar lojas:', erro.message);
+        console.error('ERRO REAL AO BUSCAR LOJAS:', erro);
         res.status(500).json({
             erro: 'Não foi possível carregar as lojas.'
         });

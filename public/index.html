@@ -32,61 +32,92 @@
 
             <div id="painelVendedorDeslogado">
 
-                <h3>Criar conta</h3>
+                <!-- ==================== LOGIN ==================== -->
 
-                <input
-                    type="text"
-                    id="nomeVendedor"
-                    placeholder="Seu nome"
-                >
+                <div id="painelLoginVendedor">
 
-                <input
-                    type="email"
-                    id="emailVendedor"
-                    placeholder="Seu email"
-                >
+                    <h3>Entrar como vendedor</h3>
 
-                <input
-                    type="tel"
-                    id="telefoneVendedor"
-                    placeholder="Telefone / WhatsApp"
-                >
+                    <input
+                        type="email"
+                        id="emailLoginVendedor"
+                        placeholder="Seu email"
+                    >
 
-                <input
-                    type="password"
-                    id="senhaNovoVendedor"
-                    placeholder="Crie uma senha (mínimo 6 caracteres)"
-                >
+                    <input
+                        type="password"
+                        id="senhaLoginVendedor"
+                        placeholder="Sua senha"
+                    >
 
-                <button
-                    id="btnCriarContaVendedor"
-                    class="btn btn-publicar"
-                    type="button">
-                    Criar conta
-                </button>
+                    <button
+                        id="btnLoginVendedor"
+                        class="btn btn-publicar"
+                        type="button">
+                        Entrar
+                    </button>
 
-                <hr>
+                    <p>
+                        Ainda não tem conta?
+                        <button
+                            id="btnMostrarCriarConta"
+                            type="button">
+                            Criar conta
+                        </button>
+                    </p>
 
-                <h3>Entrar</h3>
+                </div>
 
-                <input
-                    type="email"
-                    id="emailLoginVendedor"
-                    placeholder="Seu email"
-                >
 
-                <input
-                    type="password"
-                    id="senhaLoginVendedor"
-                    placeholder="Sua senha"
-                >
+                <!-- ==================== CADASTRO ==================== -->
 
-                <button
-                    id="btnLoginVendedor"
-                    class="btn btn-publicar"
-                    type="button">
-                    Entrar como vendedor
-                </button>
+                <div
+                    id="painelCriarContaVendedor"
+                    style="display:none;">
+
+                    <h3>Criar conta de vendedor</h3>
+
+                    <input
+                        type="text"
+                        id="nomeVendedor"
+                        placeholder="Seu nome"
+                    >
+
+                    <input
+                        type="email"
+                        id="emailVendedor"
+                        placeholder="Seu email"
+                    >
+
+                    <input
+                        type="tel"
+                        id="telefoneVendedor"
+                        placeholder="Telefone / WhatsApp"
+                    >
+
+                    <input
+                        type="password"
+                        id="senhaNovoVendedor"
+                        placeholder="Crie uma senha (mínimo 6 caracteres)"
+                    >
+
+                    <button
+                        id="btnCriarContaVendedor"
+                        class="btn btn-publicar"
+                        type="button">
+                        Criar conta
+                    </button>
+
+                    <p>
+                        Já tem conta?
+                        <button
+                            id="btnMostrarLogin"
+                            type="button">
+                            Entrar
+                        </button>
+                    </p>
+
+                </div>
 
             </div>
 
@@ -366,7 +397,7 @@
 <script src="config.js"></script>
 <script src="products.js"></script>
 <script src="navigation.js"></script>
-<script src="admin.js"></script>
+<script src="admin.js?v=20260831"></script>
 <script src="script.js"></script>
 
 

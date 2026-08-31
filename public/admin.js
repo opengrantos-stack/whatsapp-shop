@@ -1090,6 +1090,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (!resposta.ok) {
 
+                    if (resposta.status === 401 || resposta.status === 404) {
+
+                        throw new Error(
+                            "Conta não encontrada. Se ainda não possui uma conta, clique em \"Criar conta\"."
+                        );
+                    }
+
                     throw new Error(
                         resultado.erro ||
                         "Não foi possível entrar."
@@ -1125,7 +1132,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 btnLogin.disabled = false;
 
                 btnLogin.textContent =
-                    "Entrar como vendedor";
+                    "Entrar";
             }
         }
     );
@@ -1271,5 +1278,53 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     atualizarPainelVendedor();
+
+});
+
+
+// ==================== ALTERNAR LOGIN / CRIAR CONTA ====================
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const painelLogin =
+        document.getElementById("painelLoginVendedor");
+
+    const painelCriar =
+        document.getElementById("painelCriarContaVendedor");
+
+    const btnMostrarCriar =
+        document.getElementById("btnMostrarCriarConta");
+
+    const btnMostrarLogin =
+        document.getElementById("btnMostrarLogin");
+
+    if (
+        !painelLogin ||
+        !painelCriar ||
+        !btnMostrarCriar ||
+        !btnMostrarLogin
+    ) {
+        return;
+    }
+
+    btnMostrarCriar.addEventListener(
+        "click",
+        function () {
+
+            painelLogin.style.display = "none";
+            painelCriar.style.display = "block";
+
+        }
+    );
+
+    btnMostrarLogin.addEventListener(
+        "click",
+        function () {
+
+            painelCriar.style.display = "none";
+            painelLogin.style.display = "block";
+
+        }
+    );
 
 });
