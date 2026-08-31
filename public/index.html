@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GC-AngGlobal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="cabecalho">
+    <img id="logoLoja" src="png1.jpg" alt="GC-AngGlobal" class="logo">
+    <h1 id="nomeLoja">GC-AngGlobal</h1>
+    <p id="descricaoLoja"></p>
+</header>
+
+
+<main class="container">
+
+    <section class="secao-admin">
+        <button id="btnAdmin" class="btn-secao" type="button">
+            🔐 ADMINISTRADOR
+        </button>
+
+        <div id="areaLoginAdmin" class="formulario fechado">
+
+            <h2>Acesso administrativo</h2>
+
+            <input
+                type="password"
+                id="senhaAdmin"
+                placeholder="Senha de administrador"
+            >
+
+            <button
+                id="btnLoginAdmin"
+                class="btn btn-publicar"
+                type="button">
+                Entrar
+            </button>
+
+            <p id="mensagemLoginAdmin" class="mensagem-cadastro"></p>
+
+            <button
+                id="btnSairAdmin"
+                class="btn"
+                type="button"
+                style="display:none;">
+                🚪 Sair
+            </button>
+
+        </div>
+    </section>
+
+
+    <section class="secao-gerir">
+        <button id="btnGerir" class="btn-secao" type="button">
+            ADICIONAR PRODUTO / SERVIÇO
+            <span id="setaGerir">▼</span>
+        </button>
+
+        <div id="formularioProduto" class="formulario fechado">
+
+            <h2>Novo produto ou serviço</h2>
+
+            <label for="tipoProduto">Tipo</label>
+            <select id="tipoProduto">
+                <option value="produto">Produto</option>
+                <option value="servico">Serviço</option>
+            </select>
+
+            <label for="lojaProduto">Loja</label>
+            <select id="lojaProduto">
+                <option value="">Selecione a loja</option>
+            </select>
+
+            <label for="nomeProduto">Nome</label>
+            <input
+                type="text"
+                id="nomeProduto"
+                placeholder="Nome do produto ou serviço"
+            >
+
+            <label for="descricaoProduto">Descrição</label>
+            <textarea
+                id="descricaoProduto"
+                placeholder="Descreva o produto ou serviço"
+                rows="4"
+            ></textarea>
+
+            <label for="precoProduto">Preço (Kz)</label>
+            <input
+                type="number"
+                id="precoProduto"
+                placeholder="Ex.: 5000"
+                min="0"
+            >
+
+            <label>Imagem</label>
+
+            <div class="opcoes-imagem">
+
+                <label
+                    for="imagemProduto"
+                    class="btn btn-imagem">
+                    🖼️ Escolher foto
+                </label>
+
+                <input
+                    type="file"
+                    id="imagemProduto"
+                    accept="image/*"
+                    hidden
+                >
+
+                <label
+                    for="cameraProduto"
+                    class="btn btn-imagem">
+                    📷 Tirar foto
+                </label>
+
+                <input
+                    type="file"
+                    id="cameraProduto"
+                    accept="image/*"
+                    capture="environment"
+                    hidden
+                >
+
+            </div>
+
+            <p id="mensagemImagem" class="mensagem-imagem"></p>
+
+            <button id="btnPublicar" class="btn btn-publicar" type="button">
+                Publicar
+            </button>
+
+            <p id="mensagemCadastro" class="mensagem-cadastro"></p>
+
+        </div>
+    </section>
+
+
+    <!-- ==================== GESTÃO DE LOJAS ==================== -->
+
+    <section class="secao-admin-lojas">
+
+        <button id="btnLojas" class="btn-secao" type="button">
+            🏪 GERIR LOJAS
+        </button>
+
+        <div id="areaLojas" class="formulario fechado">
+
+            <h3>Gestão de Lojas</h3>
+
+            <button id="btnCriarLoja" type="button">
+                ➕ Criar nova loja
+            </button>
+
+            <p id="mensagemLoja"></p>
+
+            <div id="listaLojas">
+                A carregar...
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- ==================== SELEÇÃO DE LOJA ==================== -->
+
+    <section class="secao-selecao-loja">
+
+        <label for="seletorLojaVitrine">
+            ESCOLHA UMA LOJA
+        </label>
+
+        <select id="seletorLojaVitrine">
+            <option value="">Selecione uma loja</option>
+        </select>
+
+        <p id="mensagemSelecaoLoja"></p>
+
+    </section>
+
+    <section class="secao-loja">
+        <button id="btnProdutos" class="btn-secao" type="button">
+            PRODUTOS E SERVIÇOS
+            <span id="setaProdutos">▼</span>
+        </button>
+
+        <div id="listaProdutos" class="produtos fechado"></div>
+
+        <div id="detalhesProduto" class="detalhes-produto fechado">
+            <div class="detalhes-produto-conteudo">
+                <button id="fecharDetalhesProduto" class="btn-fechar-detalhes" type="button">
+                    Fechar
+                </button>
+
+                <div id="detalhesProdutoConteudo"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="carrinho">
+        <button id="btnPedido" class="btn-secao" type="button">
+            MEU PEDIDO
+            <span id="setaPedido">▼</span>
+        </button>
+
+        <div id="conteudoPedido" class="conteudo-pedido fechado">
+
+            <div id="listaCarrinho">
+                <p class="carrinho-vazio">
+                    O seu pedido está vazio.
+                </p>
+            </div>
+
+            <div id="total" class="total">
+                Total: 0 Kz
+            </div>
+
+            <button
+                id="btnWhatsApp"
+                class="btn btn-whatsapp"
+                style="display:none;">
+                Finalizar pedido pelo WhatsApp
+            </button>
+
+        </div>
+    </section>
+
+</main>
+
+<script src="config.js"></script>
+<script src="products.js"></script>
+<script src="navigation.js"></script>
+<script src="admin.js"></script>
+<script src="script.js"></script>
+
+
+
+</body>
+</html>
