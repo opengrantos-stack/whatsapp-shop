@@ -871,6 +871,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 mensagemMinhaLoja.textContent =
                     "Você ainda não possui uma loja.";
 
+                btnCriarMinhaLoja.style.display =
+                    "block";
+
+                btnCriarMinhaLoja.disabled =
+                    false;
+
+                btnCriarMinhaLoja.textContent =
+                    "Criar minha loja";
+
                 return;
             }
 
