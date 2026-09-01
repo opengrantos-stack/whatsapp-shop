@@ -796,6 +796,31 @@ document.addEventListener("DOMContentLoaded", function () {
             "btnSairVendedor"
         );
 
+    const btnEntrarMinhaLoja =
+        document.getElementById(
+            "btnEntrarMinhaLoja"
+        );
+
+    const areaInternaMinhaLoja =
+        document.getElementById(
+            "areaInternaMinhaLoja"
+        );
+
+    const tituloAreaMinhaLoja =
+        document.getElementById(
+            "tituloAreaMinhaLoja"
+        );
+
+    const descricaoAreaMinhaLoja =
+        document.getElementById(
+            "descricaoAreaMinhaLoja"
+        );
+
+    const btnAdicionarNaMinhaLoja =
+        document.getElementById(
+            "btnAdicionarNaMinhaLoja"
+        );
+
     function tokenVendedor() {
         return localStorage.getItem(
             "gc_angglobal_seller_token"
@@ -847,6 +872,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const token = tokenVendedor();
 
+        const painelLojaCriada =
+            document.getElementById(
+                "painelLojaCriada"
+            );
+
+        const nomeLojaCriada =
+            document.getElementById(
+                "nomeLojaCriada"
+            );
+
+        const descricaoLojaCriada =
+            document.getElementById(
+                "descricaoLojaCriada"
+            );
+
         if (!token) {
             return;
         }
@@ -880,6 +920,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 btnCriarMinhaLoja.textContent =
                     "Criar minha loja";
 
+                if (painelLojaCriada) {
+                    painelLojaCriada.style.display =
+                        "none";
+                }
+
                 return;
             }
 
@@ -905,10 +950,26 @@ document.addEventListener("DOMContentLoaded", function () {
             ).value = loja.whatsapp || "";
 
             mensagemMinhaLoja.textContent =
-                "🏪 Loja ativa: " + loja.nome;
+                "🏪 Sua loja está pronta.";
 
             btnCriarMinhaLoja.style.display =
                 "none";
+
+            if (nomeLojaCriada) {
+                nomeLojaCriada.textContent =
+                    "🏪 " + loja.nome;
+            }
+
+            if (descricaoLojaCriada) {
+                descricaoLojaCriada.textContent =
+                    loja.descricao ||
+                    "Bem-vindo à nossa loja.";
+            }
+
+            if (painelLojaCriada) {
+                painelLojaCriada.style.display =
+                    "block";
+            }
 
         } catch (erro) {
 
@@ -1249,6 +1310,173 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     );
 
+
+    // ==================== ENTRAR NA MINHA LOJA ====================
+
+    if (btnEntrarMinhaLoja) {
+
+        btnEntrarMinhaLoja.addEventListener(
+            "click",
+            async function () {
+
+                const token = tokenVendedor();
+
+                if (!token) {
+
+                    mensagemMinhaLoja.textContent =
+                        "Sessão de vendedor não encontrada.";
+
+                    return;
+                }
+
+                try {
+
+                    const resposta = await fetch(
+                        "/api/vendedores/minha-loja",
+                        {
+                            headers: {
+                                "Authorization":
+                                    "Bearer " + token
+                            }
+                        }
+                    );
+
+                    const resultado =
+                        await resposta.json();
+
+                    if (!resposta.ok) {
+                        throw new Error(
+                            resultado.erro ||
+                            "Não foi possível abrir sua loja."
+                        );
+                    }
+
+                    const loja = resultado.loja;
+
+                    if (tituloAreaMinhaLoja) {
+
+                        tituloAreaMinhaLoja.textContent =
+                            "🏪 " + loja.nome;
+                    }
+
+                    if (descricaoAreaMinhaLoja) {
+
+                        descricaoAreaMinhaLoja.textContent =
+                            loja.descricao ||
+                            "";
+                    }
+
+                    if (areaInternaMinhaLoja) {
+
+                        areaInternaMinhaLoja.style.display =
+                            "block";
+                    }
+
+                    areaInternaMinhaLoja.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+
+                } catch (erro) {
+
+                    console.error(
+                        "Erro ao entrar na loja:",
+                        erro
+                    );
+
+                    mensagemMinhaLoja.textContent =
+                        erro.message ||
+                        "Não foi possível abrir sua loja.";
+                }
+            }
+        );
+    }
+
+
+    // ==================== ADICIONAR NA MINHA LOJA ====================
+
+    if (btnAdicionarNaMinhaLoja) {
+
+        btnAdicionarNaMinhaLoja.addEventListener(
+            "click",
+            function () {
+
+                const formulario =
+                    document.getElementById(
+                        "formularioProduto"
+                    );
+
+                const seletorLoja =
+                    document.getElementById(
+                        "lojaProduto"
+                    );
+
+                const labelLoja =
+                    document.querySelector(
+                        'label[for="lojaProduto"]'
+                    );
+
+                const token =
+                    tokenVendedor();
+
+                if (!token) {
+
+                    mensagemMinhaLoja.textContent =
+                        "Sessão de vendedor não encontrada.";
+
+                    return;
+                }
+
+                if (formulario) {
+
+                    formulario.classList.remove(
+                        "fechado"
+                    );
+                }
+
+                if (seletorLoja) {
+
+                    seletorLoja.innerHTML =
+                        '<option value="minha-loja">Minha loja</option>';
+
+                    seletorLoja.value =
+                        "minha-loja";
+
+                    seletorLoja.style.display =
+                        "none";
+                }
+
+                if (labelLoja) {
+
+                    labelLoja.style.display =
+                        "none";
+                }
+
+                setTimeout(function () {
+
+                    const nomeProduto =
+                        document.getElementById(
+                            "nomeProduto"
+                        );
+
+                    if (nomeProduto) {
+
+                        nomeProduto.focus();
+
+                    }
+
+                    if (formulario) {
+
+                        formulario.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start"
+                        });
+                    }
+
+                }, 100);
+            }
+        );
+    }
 
     // ==================== SAIR ====================
 
