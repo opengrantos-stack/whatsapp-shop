@@ -795,3 +795,223 @@ body {
         margin-bottom: 40px;
     }
 }
+
+/* =========================================
+   IDENTIDADE VISUAL GC-ANGGLOBAL
+========================================= */
+
+/* Título principal da plataforma */
+.cabecalho h1 {
+    color: #087443;
+}
+
+/* Subtítulo principal */
+.cabecalho-logo p {
+    color: #2f6f73;
+    font-weight: 500;
+}
+
+/* Títulos principais */
+h2 {
+    color: #087443;
+}
+
+/* Subtítulos e títulos de secções */
+h3 {
+    color: #b7791f;
+}
+
+/* Texto da apresentação */
+.apresentacao p {
+    color: #3f4f4f;
+}
+
+/* Nome da loja aberta */
+#nomeLojaAberta {
+    color: #087443;
+}
+
+/* Descrição da loja */
+#descricaoLojaAberta {
+    color: #4a5568;
+}
+
+
+
+/* ============================================================
+   CORES DOS TÍTULOS E SUBTÍTULOS
+   ============================================================ */
+
+.cabecalho h1 {
+    color: #128C7E;
+}
+
+.cabecalho p {
+    color: #46635f;
+    font-weight: 500;
+}
+
+
+/* TÍTULO DE BOAS-VINDAS */
+
+.apresentacao h2 {
+    color: #128C7E;
+}
+
+
+/* SUBTÍTULO DA APRESENTAÇÃO */
+
+.apresentacao p {
+    color: #46635f;
+}
+
+
+/* TÍTULO DAS LOJAS */
+
+#secaoLojasDisponiveis h2 {
+    color: #128C7E;
+}
+
+
+/* TÍTULOS DE SECÇÕES */
+
+#secaoMinhaConta h2,
+#secaoMinhaConta h3,
+#secaoLoja h2,
+#secaoLoja h3 {
+    color: #128C7E;
+}
+
+
+/* TÍTULOS DOS FORMULÁRIOS */
+
+.formulario h2,
+.formulario h3 {
+    color: #128C7E;
+}
+
+
+/* CABEÇALHO DA LOJA ABERTA */
+
+#nomeLojaAberta {
+    color: #128C7E;
+}
+
+
+/* DESCRIÇÕES E SUBTÍTULOS */
+
+#descricaoLojaAberta,
+#secaoLojasDisponiveis > p,
+.apresentacao p {
+    color: #46635f;
+}
+
+
+
+/* ============================================================
+   BOTÕES ENTRAR E CRIAR CONTA
+   ============================================================ */
+
+#acoesVisitante {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+#acoesVisitante .btn {
+    width: auto;
+    min-width: 120px;
+    margin: 0;
+}
+
+#acoesVisitante #btnAbrirCadastro {
+    background: var(--branco);
+    color: var(--cor-secundaria);
+    border: 1px solid var(--borda);
+}
+
+#acoesVisitante #btnAbrirCadastro:hover {
+    background: #f0faf7;
+}
+
+
+/* ============================================================
+   MODO LOJA ABERTA — PÁGINA EXCLUSIVA
+   ============================================================ */
+
+body.modo-loja-aberta {
+    background: #f5f7f6;
+}
+
+
+/* Esconder completamente o cabeçalho da plataforma */
+
+body.modo-loja-aberta .cabecalho {
+    display: none;
+}
+
+
+/* A loja ocupa toda a área principal */
+
+body.modo-loja-aberta main.container {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* A secção da loja ocupa a página */
+
+body.modo-loja-aberta #secaoLoja {
+    display: block !important;
+    width: 100%;
+    min-height: 100vh;
+    box-sizing: border-box;
+    padding: 24px 16px 60px;
+    background: #f5f7f6;
+}
+
+
+/* Conteúdo interno com largura controlada */
+
+body.modo-loja-aberta #secaoLoja > * {
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* Botão voltar */
+
+body.modo-loja-aberta #btnVoltarPlataforma {
+    display: inline-block;
+    margin-bottom: 24px;
+}
+
+
+/* Cabeçalho da loja */
+
+body.modo-loja-aberta .cabecalho-loja {
+    background: var(--branco);
+    padding: 28px 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+
+/* Título da loja */
+
+body.modo-loja-aberta #nomeLojaAberta {
+    margin-top: 0;
+}
+
+
+/* Garantir que a plataforma não aparece */
+
+body.modo-loja-aberta #secaoPlataforma {
+    display: none !important;
+}

@@ -1,461 +1,896 @@
 let carrinho = [];
+let lojaAtual = null;
 
-const nomeLoja = document.getElementById("nomeLoja");
-const descricaoLoja = document.getElementById("descricaoLoja");
-const logoLoja = document.getElementById("logoLoja");
-const listaProdutos = document.getElementById("listaProdutos");
-const listaCarrinho = document.getElementById("listaCarrinho");
-const totalElemento = document.getElementById("total");
-const btnWhatsApp = document.getElementById("btnWhatsApp");
 
-nomeLoja.textContent = lojaConfig.nome;
-descricaoLoja.textContent = lojaConfig.descricao;
-
-if (lojaConfig.logo) {
-    logoLoja.src = lojaConfig.logo;
-} else {
-    logoLoja.style.display = "none";
-}
+// ============================================================
+// UTILITÁRIOS
+// ============================================================
 
 function formatarPreco(valor) {
-    return valor.toLocaleString("pt-PT") + " " + lojaConfig.moeda;
+    return Number(valor || 0).toLocaleString("pt-PT") + " Kz";
 }
 
-function mostrarProdutos() {
-    listaProdutos.innerHTML = "";
 
-    if (produtos.length === 0) {
-        listaProdutos.innerHTML = `
-            <div class="sem-produtos">
-                Ainda não existem produtos ou serviços publicados.
-            </div>
-        `;
-        return;
-    }
+// ============================================================
+// AUTENTICAÇÃO
+// ============================================================
 
-    produtos.forEach(produto => {
-        const card = document.createElement("article");
-        card.className = "produto";
-
-        const icone = produto.imagem
-            ? `
-                <div class="produto-visual">
-                    <img
-                        src="${produto.imagem}"
-                        alt="${produto.nome}"
-                    >
-                </div>
-            `
-            : `
-                <div class="produto-visual produto-sem-imagem">
-                    <span>
-                        ${produto.tipo === "servico" ? "🛠️" : "📦"}
-                    </span>
-                </div>
-            `;
-
-        card.innerHTML = `
-            ${icone}
-
-            <div class="produto-conteudo">
-                <h2>${produto.nome}</h2>
-
-                <button
-                    class="btn btn-ver-produto"
-                    type="button"
-                    onclick="verDetalhesProduto(${produto.id})">
-                    Ver produto
-                </button>
-            </div>
-        `;
-
-        listaProdutos.appendChild(card);
-    });
+function obterTokenUsuario() {
+    return localStorage.getItem(
+        "gc_angglobal_user_token"
+    );
 }
 
-async function eliminarProduto(id) {
 
-    const token = localStorage.getItem(
-        "gc_angglobal_admin_token"
-    );
+function obterUsuarioLocal() {
+    const dados =
+        localStorage.getItem(
+            "gc_angglobal_user"
+        );
 
-    if (token !== "gc-angglobal-admin") {
-        return;
-    }
-
-    const produto = produtos.find(p => p.id === id);
-
-    if (!produto) {
-        return;
-    }
-
-    const confirmar = confirm(
-        'Tem certeza que deseja eliminar "' +
-        produto.nome +
-        '"?'
-    );
-
-    if (!confirmar) {
-        return;
+    if (!dados) {
+        return null;
     }
 
     try {
+        return JSON.parse(dados);
+    } catch {
+        return null;
+    }
+}
 
-        const resposta = await fetch(
-            "/api/produtos/" + id,
-            {
-                method: "DELETE",
-                headers: {
-                    "Authorization":
-                        "Bearer " + token
-                }
-            }
+
+function guardarSessao(resultado) {
+
+    localStorage.setItem(
+        "gc_angglobal_user_token",
+        resultado.token
+    );
+
+    localStorage.setItem(
+        "gc_angglobal_user",
+        JSON.stringify(resultado.usuario)
+    );
+}
+
+
+function limparSessao() {
+
+    localStorage.removeItem(
+        "gc_angglobal_user_token"
+    );
+
+    localStorage.removeItem(
+        "gc_angglobal_user"
+    );
+}
+
+
+// ============================================================
+// INTERFACE DA CONTA
+// ============================================================
+
+function atualizarInterfaceConta() {
+
+    const token =
+        obterTokenUsuario();
+
+    const visitante =
+        document.getElementById(
+            "acoesVisitante"
         );
 
-        const resultado = await resposta.json();
+    const utilizador =
+        document.getElementById(
+            "acoesUtilizador"
+        );
+
+    const secaoConta =
+        document.getElementById(
+            "secaoMinhaConta"
+        );
+
+    const usuario =
+        obterUsuarioLocal();
+
+    if (token && usuario) {
+
+        if (visitante) {
+            visitante.style.display =
+                "none";
+        }
+
+        if (utilizador) {
+            utilizador.style.display =
+                "block";
+        }
+
+        const nome =
+            document.getElementById(
+                "nomeUtilizadorConta"
+            );
+
+        const email =
+            document.getElementById(
+                "emailUtilizadorConta"
+            );
+
+        if (nome) {
+            nome.textContent =
+                usuario.nome;
+        }
+
+        if (email) {
+            email.textContent =
+                usuario.email;
+        }
+
+    } else {
+
+        if (visitante) {
+            visitante.style.display =
+                "block";
+        }
+
+        if (utilizador) {
+            utilizador.style.display =
+                "none";
+        }
+
+        if (secaoConta) {
+            secaoConta.style.display =
+                "none";
+        }
+    }
+}
+
+
+// ============================================================
+// LOGIN
+// ============================================================
+
+async function fazerLogin() {
+
+    const email =
+        document.getElementById(
+            "emailLogin"
+        ).value.trim();
+
+    const senha =
+        document.getElementById(
+            "senhaLogin"
+        ).value;
+
+    const mensagem =
+        document.getElementById(
+            "mensagemLogin"
+        );
+
+    if (!email || !senha) {
+
+        mensagem.textContent =
+            "Preencha o email e a senha.";
+
+        return;
+    }
+
+    const botao =
+        document.getElementById(
+            "btnLogin"
+        );
+
+    botao.disabled = true;
+    botao.textContent = "A entrar...";
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/contas/login",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        email,
+                        senha
+                    })
+                }
+            );
+
+        const resultado =
+            await resposta.json();
 
         if (!resposta.ok) {
             throw new Error(
                 resultado.erro ||
-                "Não foi possível eliminar."
+                "Não foi possível entrar."
             );
         }
 
-        await carregarProdutos();
+        guardarSessao(
+            resultado
+        );
 
-        alert(
-            "Produto/serviço eliminado com sucesso."
+        mensagem.textContent =
+            "Login efetuado com sucesso.";
+
+        document.getElementById(
+            "secaoLogin"
+        ).style.display = "none";
+
+        atualizarInterfaceConta();
+
+        await carregarMinhasLojas();
+
+    } catch (erro) {
+
+        mensagem.textContent =
+            erro.message;
+
+    } finally {
+
+        botao.disabled = false;
+        botao.textContent = "Entrar";
+    }
+}
+
+
+// ============================================================
+// CRIAR CONTA
+// ============================================================
+
+async function criarConta() {
+
+    const nome =
+        document.getElementById(
+            "nomeCadastro"
+        ).value.trim();
+
+    const email =
+        document.getElementById(
+            "emailCadastro"
+        ).value.trim();
+
+    const senha =
+        document.getElementById(
+            "senhaCadastro"
+        ).value;
+
+    const mensagem =
+        document.getElementById(
+            "mensagemCadastro"
+        );
+
+    if (!nome || !email || !senha) {
+
+        mensagem.textContent =
+            "Preencha nome, email e senha.";
+
+        return;
+    }
+
+    const botao =
+        document.getElementById(
+            "btnCriarConta"
+        );
+
+    botao.disabled = true;
+    botao.textContent = "A criar conta...";
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/contas/cadastro",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        nome,
+                        email,
+                        senha
+                    })
+                }
+            );
+
+        const resultado =
+            await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                resultado.erro ||
+                "Não foi possível criar a conta."
+            );
+        }
+
+        guardarSessao(
+            resultado
+        );
+
+        mensagem.textContent =
+            "Conta criada com sucesso.";
+
+        document.getElementById(
+            "secaoCadastro"
+        ).style.display = "none";
+
+        atualizarInterfaceConta();
+
+        await carregarMinhasLojas();
+
+    } catch (erro) {
+
+        mensagem.textContent =
+            erro.message;
+
+    } finally {
+
+        botao.disabled = false;
+        botao.textContent = "Criar conta";
+    }
+}
+
+
+// ============================================================
+// MINHA CONTA
+// ============================================================
+
+async function abrirMinhaConta() {
+
+    const secao =
+        document.getElementById(
+            "secaoMinhaConta"
+        );
+
+    if (!obterTokenUsuario()) {
+        return;
+    }
+
+    document.getElementById(
+        "secaoLogin"
+    ).style.display = "none";
+
+    document.getElementById(
+        "secaoCadastro"
+    ).style.display = "none";
+
+    if (secao) {
+        secao.style.display =
+            "block";
+
+        secao.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    }
+
+    await carregarMinhasLojas();
+}
+
+
+// ============================================================
+// MINHAS LOJAS
+// ============================================================
+
+async function carregarMinhasLojas() {
+
+    const lista =
+        document.getElementById(
+            "listaMinhasLojas"
+        );
+
+    if (!lista) {
+        return;
+    }
+
+    const token =
+        obterTokenUsuario();
+
+    if (!token) {
+        lista.innerHTML =
+            "<p>Entre na sua conta para ver as suas lojas.</p>";
+        return;
+    }
+
+    lista.innerHTML =
+        "<p>A carregar as suas lojas...</p>";
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/minhas-lojas",
+                {
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                }
+            );
+
+        const resultado =
+            await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                resultado.erro ||
+                "Não foi possível carregar as lojas."
+            );
+        }
+
+        if (!resultado.lojas.length) {
+
+            lista.innerHTML =
+                "<p>Ainda não possui lojas.</p>";
+
+            return;
+        }
+
+        lista.innerHTML = "";
+
+        resultado.lojas.forEach(
+            function (loja) {
+
+                const bloco =
+                    document.createElement(
+                        "div"
+                    );
+
+                bloco.className =
+                    "minha-loja-card";
+
+                bloco.innerHTML = `
+                    <h4>🏪 ${loja.nome}</h4>
+
+                    <p>
+                        ${loja.descricao || ""}
+                    </p>
+
+                    <button
+                        class="btn"
+                        type="button"
+                        data-abrir-loja="${loja.id}"
+                    >
+                        Entrar na loja
+                    </button>
+
+                    <p>
+                        🔗 ${window.location.origin}/loja/${loja.slug}
+                    </p>
+
+                    <button
+                        class="btn"
+                        type="button"
+                        data-copiar-link="${loja.id}"
+                        data-link="${window.location.origin}/loja/${loja.slug}"
+                    >
+                        📋 Copiar link
+                    </button>
+                `;
+
+                lista.appendChild(
+                    bloco
+                );
+            }
         );
 
     } catch (erro) {
 
-        console.error(erro);
-
-        alert(
-            erro.message ||
-            "Não foi possível eliminar o produto/serviço."
+        console.error(
+            "Erro ao carregar minhas lojas:",
+            erro
         );
+
+        lista.innerHTML =
+            "<p>Não foi possível carregar as suas lojas.</p>";
     }
 }
 
 
-function verDetalhesProduto(id) {
-    const produto = produtos.find(p => p.id === id);
+// ============================================================
+// CRIAR LOJA
+// ============================================================
 
-    if (!produto) {
-        return;
-    }
+async function criarLoja() {
 
-    const detalhes = document.getElementById("detalhesProduto");
-    const conteudo = document.getElementById("detalhesProdutoConteudo");
+    const nome =
+        document.getElementById(
+            "nomeNovaLoja"
+        ).value.trim();
 
-    const adminLogado =
-        localStorage.getItem("gc_angglobal_admin_token") ===
-        "gc-angglobal-admin";
+    const descricao =
+        document.getElementById(
+            "descricaoNovaLoja"
+        ).value.trim();
 
-    const imagem = produto.imagem
-        ? `
-            <div class="detalhes-imagem">
-                <img
-                    src="${produto.imagem}"
-                    alt="${produto.nome}"
-                >
-            </div>
-        `
-        : `
-            <div class="detalhes-imagem detalhes-sem-imagem">
-                <span>
-                    ${produto.tipo === "servico" ? "🛠️" : "📦"}
-                </span>
-            </div>
-        `;
-
-    const acoesAdmin = adminLogado
-        ? `
-            <div class="acoes-admin-detalhes">
-                <button
-                    class="btn btn-editar"
-                    type="button"
-                    onclick="editarProduto(${produto.id}); fecharDetalhesProduto();">
-                    Editar
-                </button>
-
-                <button
-                    class="btn btn-eliminar"
-                    type="button"
-                    onclick="eliminarProduto(${produto.id});">
-                    Eliminar
-                </button>
-            </div>
-        `
-        : "";
-
-    conteudo.innerHTML = `
-        ${imagem}
-
-        <div class="detalhes-info">
-
-            <div class="detalhes-tipo">
-                ${produto.tipo === "servico" ? "SERVIÇO" : "PRODUTO"}
-            </div>
-
-            <h2>${produto.nome}</h2>
-
-            <div class="detalhes-preco">
-                ${formatarPreco(produto.preco)}
-            </div>
-
-            <div class="detalhes-descricao">
-                ${produto.descricao}
-            </div>
-
-            <button
-                class="btn btn-adicionar detalhes-btn-adicionar"
-                type="button"
-                onclick="adicionarAoCarrinho(${produto.id}); fecharDetalhesProduto();">
-                ${produto.tipo === "servico"
-                    ? "Solicitar serviço"
-                    : "Adicionar ao pedido"}
-            </button>
-
-            ${acoesAdmin}
-
-        </div>
-    `;
-
-    detalhes.classList.remove("fechado");
-
-    document.body.classList.add("produto-aberto");
-}
-
-function fecharDetalhesProduto() {
-    const detalhes = document.getElementById("detalhesProduto");
-
-    if (detalhes) {
-        detalhes.classList.add("fechado");
-    }
-
-    document.body.classList.remove("produto-aberto");
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    const btnFechar = document.getElementById("fecharDetalhesProduto");
-
-    if (btnFechar) {
-        btnFechar.addEventListener("click", fecharDetalhesProduto);
-    }
-});
-
-function editarProduto(id) {
-
-    const token = localStorage.getItem(
-        "gc_angglobal_admin_token"
-    );
-
-    if (token !== "gc-angglobal-admin") {
-        return;
-    }
-
-    const produto = produtos.find(p => p.id === id);
-
-    if (!produto) {
-        return;
-    }
-
-    document.getElementById("tipoProduto").value =
-        produto.tipo;
-
-    document.getElementById("nomeProduto").value =
-        produto.nome;
-
-    document.getElementById("descricaoProduto").value =
-        produto.descricao;
-
-    document.getElementById("precoProduto").value =
-        produto.preco;
-
-    document.getElementById("imagemProduto").value = "";
-
-    const formulario =
-        document.getElementById("formularioProduto");
-
-    formulario.classList.remove("fechado");
-
-    const setaGerir =
-        document.getElementById("setaGerir");
-
-    setaGerir.textContent = "▲";
-
-    const btnPublicar =
-        document.getElementById("btnPublicar");
-
-    btnPublicar.textContent = "Guardar alterações";
-
-    btnPublicar.dataset.editandoId = id;
+    const whatsapp =
+        document.getElementById(
+            "whatsappNovaLoja"
+        ).value.trim();
 
     const mensagem =
-        document.getElementById("mensagemCadastro");
+        document.getElementById(
+            "mensagemCriarLoja"
+        );
 
-    mensagem.textContent =
-        "A editar: " + produto.nome;
+    const token =
+        obterTokenUsuario();
 
-    formulario.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-    });
-}
+    if (!token) {
 
-function adicionarAoCarrinho(id) {
-    const produto = produtos.find(p => p.id === id);
+        mensagem.textContent =
+            "Entre na sua conta primeiro.";
 
-    if (!produto) {
         return;
     }
 
-    const itemExistente = carrinho.find(item => item.id === id);
+    if (!nome) {
 
-    if (itemExistente) {
-        itemExistente.quantidade++;
-    } else {
-        carrinho.push({
-            id: produto.id,
-            nome: produto.nome,
-            preco: produto.preco,
-            quantidade: 1
-        });
-    }
+        mensagem.textContent =
+            "Digite o nome da loja.";
 
-    atualizarCarrinho();
-}
-
-function alterarQuantidade(id, quantidade) {
-    const item = carrinho.find(item => item.id === id);
-
-    if (!item) {
         return;
     }
 
-    item.quantidade += quantidade;
+    const botao =
+        document.getElementById(
+            "btnCriarLoja"
+        );
 
-    if (item.quantidade <= 0) {
-        carrinho = carrinho.filter(item => item.id !== id);
+    botao.disabled = true;
+    botao.textContent =
+        "A criar loja...";
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/minhas-lojas",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                        "Authorization":
+                            "Bearer " + token
+                    },
+                    body: JSON.stringify({
+                        nome,
+                        descricao,
+                        whatsapp
+                    })
+                }
+            );
+
+        const resultado =
+            await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                resultado.erro ||
+                "Não foi possível criar a loja."
+            );
+        }
+
+        mensagem.textContent =
+            "Loja criada com sucesso.";
+
+        document.getElementById(
+            "nomeNovaLoja"
+        ).value = "";
+
+        document.getElementById(
+            "descricaoNovaLoja"
+        ).value = "";
+
+        document.getElementById(
+            "whatsappNovaLoja"
+        ).value = "";
+
+        await carregarMinhasLojas();
+
+    } catch (erro) {
+
+        mensagem.textContent =
+            erro.message;
+
+    } finally {
+
+        botao.disabled = false;
+        botao.textContent =
+            "Criar loja";
     }
-
-    atualizarCarrinho();
 }
 
-function calcularTotal() {
-    return carrinho.reduce(
-        (total, item) => total + (item.preco * item.quantidade),
-        0
+
+// ============================================================
+// COPIAR LINK
+// ============================================================
+
+async function copiarLink(link) {
+
+    try {
+
+        await navigator.clipboard.writeText(
+            link
+        );
+
+        return true;
+
+    } catch {
+
+        const area =
+            document.createElement(
+                "textarea"
+            );
+
+        area.value =
+            link;
+
+        document.body.appendChild(
+            area
+        );
+
+        area.select();
+
+        document.execCommand(
+            "copy"
+        );
+
+        area.remove();
+
+        return true;
+    }
+}
+
+
+// ============================================================
+// SAIR
+// ============================================================
+
+function sairDaConta() {
+
+    limparSessao();
+
+    lojaAtual =
+        null;
+
+    document.getElementById(
+        "secaoMinhaConta"
+    ).style.display = "none";
+
+    document.getElementById(
+        "secaoLoja"
+    ).style.display = "none";
+
+    document.getElementById(
+        "secaoPlataforma"
+    ).style.display = "block";
+
+    atualizarInterfaceConta();
+
+    window.history.pushState(
+        {},
+        "",
+        "/"
     );
 }
 
-function atualizarCarrinho() {
-    if (carrinho.length === 0) {
-        listaCarrinho.innerHTML = `
-            <p class="carrinho-vazio">
-                O seu pedido está vazio.
-            </p>
-        `;
 
-        totalElemento.textContent =
-            "Total: " + formatarPreco(0);
+// ============================================================
+// EVENTOS
+// ============================================================
 
-        btnWhatsApp.style.display = "none";
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-        return;
+        const btnAbrirLogin =
+            document.getElementById(
+                "btnAbrirLogin"
+            );
+
+        if (btnAbrirLogin) {
+            btnAbrirLogin.addEventListener(
+                "click",
+                function () {
+                    document.getElementById(
+                        "secaoLogin"
+                    ).style.display = "block";
+
+                    document.getElementById(
+                        "secaoCadastro"
+                    ).style.display = "none";
+                }
+            );
+        }
+
+
+        const btnAbrirCadastro =
+            document.getElementById(
+                "btnAbrirCadastro"
+            );
+
+        if (btnAbrirCadastro) {
+            btnAbrirCadastro.addEventListener(
+                "click",
+                function () {
+                    document.getElementById(
+                        "secaoCadastro"
+                    ).style.display = "block";
+
+                    document.getElementById(
+                        "secaoLogin"
+                    ).style.display = "none";
+                }
+            );
+        }
+
+
+        const irParaCadastro =
+            document.getElementById(
+                "irParaCadastro"
+            );
+
+        if (irParaCadastro) {
+            irParaCadastro.addEventListener(
+                "click",
+                function () {
+                    document.getElementById(
+                        "secaoLogin"
+                    ).style.display = "none";
+
+                    document.getElementById(
+                        "secaoCadastro"
+                    ).style.display = "block";
+                }
+            );
+        }
+
+
+        const irParaLogin =
+            document.getElementById(
+                "irParaLogin"
+            );
+
+        if (irParaLogin) {
+            irParaLogin.addEventListener(
+                "click",
+                function () {
+                    document.getElementById(
+                        "secaoCadastro"
+                    ).style.display = "none";
+
+                    document.getElementById(
+                        "secaoLogin"
+                    ).style.display = "block";
+                }
+            );
+        }
+
+
+        const btnLogin =
+            document.getElementById(
+                "btnLogin"
+            );
+
+        if (btnLogin) {
+            btnLogin.addEventListener(
+                "click",
+                fazerLogin
+            );
+        }
+
+
+        const btnCriarConta =
+            document.getElementById(
+                "btnCriarConta"
+            );
+
+        if (btnCriarConta) {
+            btnCriarConta.addEventListener(
+                "click",
+                criarConta
+            );
+        }
+
+
+        const btnAbrirMinhaConta =
+            document.getElementById(
+                "btnAbrirMinhaConta"
+            );
+
+        if (btnAbrirMinhaConta) {
+            btnAbrirMinhaConta.addEventListener(
+                "click",
+                abrirMinhaConta
+            );
+        }
+
+
+        const btnCriarLoja =
+            document.getElementById(
+                "btnCriarLoja"
+            );
+
+        if (btnCriarLoja) {
+            btnCriarLoja.addEventListener(
+                "click",
+                criarLoja
+            );
+        }
+
+
+        const btnSair =
+            document.getElementById(
+                "btnSair"
+            );
+
+        if (btnSair) {
+            btnSair.addEventListener(
+                "click",
+                sairDaConta
+            );
+        }
+
+
+        document.addEventListener(
+            "click",
+            async function (evento) {
+
+                const abrir =
+                    evento.target.closest(
+                        "[data-abrir-loja]"
+                    );
+
+                if (abrir) {
+
+                    const id =
+                        abrir.dataset.abrirLoja;
+
+                    window.location.href =
+                        "/?loja=" + id;
+
+                    return;
+                }
+
+
+                const copiar =
+                    evento.target.closest(
+                        "[data-copiar-link]"
+                    );
+
+                if (copiar) {
+
+                    const link =
+                        copiar.dataset.link;
+
+                    await copiarLink(
+                        link
+                    );
+
+                    copiar.textContent =
+                        "✅ Link copiado";
+
+                    setTimeout(
+                        function () {
+                            copiar.textContent =
+                                "📋 Copiar link";
+                        },
+                        1500
+                    );
+                }
+            }
+        );
+
+
+        atualizarInterfaceConta();
+
     }
-
-    listaCarrinho.innerHTML = "";
-
-    carrinho.forEach(item => {
-        const elemento = document.createElement("div");
-        elemento.className = "item-carrinho";
-
-        const subtotal = item.preco * item.quantidade;
-
-        elemento.innerHTML = `
-            <div>
-                <strong>${item.nome}</strong><br>
-                ${formatarPreco(subtotal)}
-            </div>
-
-            <div class="quantidade">
-                <button onclick="alterarQuantidade(${item.id}, -1)">
-                    −
-                </button>
-
-                <strong>${item.quantidade}</strong>
-
-                <button onclick="alterarQuantidade(${item.id}, 1)">
-                    +
-                </button>
-            </div>
-        `;
-
-        listaCarrinho.appendChild(elemento);
-    });
-
-    totalElemento.textContent =
-        "Total: " + formatarPreco(calcularTotal());
-
-    btnWhatsApp.style.display = "block";
-}
-
-function finalizarPedido() {
-    if (carrinho.length === 0) {
-        return;
-    }
-
-    let mensagem = `Olá! Gostaria de fazer um pedido na ${lojaConfig.nome}.\n\n`;
-
-    mensagem += "Meu pedido:\n";
-
-    carrinho.forEach(item => {
-        const subtotal = item.preco * item.quantidade;
-
-        mensagem +=
-            `- ${item.nome} x${item.quantidade} — ${formatarPreco(subtotal)}\n`;
-    });
-
-    mensagem += `\nTotal: ${formatarPreco(calcularTotal())}`;
-
-    const telefone = lojaConfig.numeroWhatsApp.replace(/\D/g, "");
-
-    const url =
-        `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
-
-    window.open(url, "_blank");
-}
-
-btnWhatsApp.addEventListener("click", finalizarPedido);
-
-mostrarProdutos();
-atualizarCarrinho();
-
-function alternarProdutos() {
-    const area = document.getElementById("listaProdutos");
-    const seta = document.getElementById("setaProdutos");
-
-    area.classList.toggle("fechado");
-
-    if (area.classList.contains("fechado")) {
-        seta.textContent = "▼";
-    } else {
-        seta.textContent = "▲";
-    }
-}
-
-function alternarPedido() {
-    const area = document.getElementById("conteudoPedido");
-    const seta = document.getElementById("setaPedido");
-
-    area.classList.toggle("fechado");
-
-    if (area.classList.contains("fechado")) {
-        seta.textContent = "▼";
-    } else {
-        seta.textContent = "▲";
-    }
-}
+);

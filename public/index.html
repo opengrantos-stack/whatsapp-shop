@@ -2,441 +2,579 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>GC-AngGlobal</title>
-    <link rel="stylesheet" href="style.css">
+
+    <link
+        rel="stylesheet"
+        href="/style.css"
+    >
 </head>
 
 <body>
 
-<header class="cabecalho">
-    <img id="logoLoja" src="png1.jpg" alt="GC-AngGlobal" class="logo">
-    <h1 id="nomeLoja">GC-AngGlobal</h1>
-    <p id="descricaoLoja"></p>
-</header>
+    <!-- =========================
+         CABEÇALHO DA PLATAFORMA
+    ========================== -->
+
+    <header class="cabecalho">
+
+        <div class="cabecalho-logo">
+            <img
+                src="/png1.jpg"
+                alt="GC-AngGlobal"
+                class="logo"
+            >
+
+            <div>
+                <h1>GC-AngGlobal</h1>
+
+                <p>
+                    Plataforma de comércio,
+                    serviços e lojas digitais.
+                </p>
+            </div>
+        </div>
 
 
-<main class="container">
+        <!-- ÁREA DA CONTA -->
 
-    <!-- ==================== ÁREA DO VENDEDOR ==================== -->
+        <div id="areaContaCabecalho">
 
-    <section class="secao-vendedor">
+            <!-- UTILIZADOR NÃO AUTENTICADO -->
 
-        <button id="btnVendedor" class="btn-secao" type="button">
-            👤 ÁREA DO VENDEDOR
-        </button>
+            <div id="acoesVisitante">
 
-        <div id="areaVendedor" class="formulario fechado">
+                <button
+                    id="btnAbrirLogin"
+                    class="btn"
+                    type="button"
+                >
+                    Entrar
+                </button>
 
-            <h2>Área do Vendedor</h2>
-
-            <div id="painelVendedorDeslogado">
-
-                <!-- ==================== LOGIN ==================== -->
-
-                <div id="painelLoginVendedor">
-
-                    <h3>Entrar como vendedor</h3>
-
-                    <input
-                        type="email"
-                        id="emailLoginVendedor"
-                        placeholder="Seu email"
-                    >
-
-                    <input
-                        type="password"
-                        id="senhaLoginVendedor"
-                        placeholder="Sua senha"
-                    >
-
-                    <button
-                        id="btnLoginVendedor"
-                        class="btn btn-publicar"
-                        type="button">
-                        Entrar
-                    </button>
-
-                    <p>
-                        Ainda não tem conta?
-                        <button
-                            id="btnMostrarCriarConta"
-                            type="button">
-                            Criar conta
-                        </button>
-                    </p>
-
-                </div>
-
-
-                <!-- ==================== CADASTRO ==================== -->
-
-                <div
-                    id="painelCriarContaVendedor"
-                    style="display:none;">
-
-                    <h3>Criar conta de vendedor</h3>
-
-                    <input
-                        type="text"
-                        id="nomeVendedor"
-                        placeholder="Seu nome"
-                    >
-
-                    <input
-                        type="email"
-                        id="emailVendedor"
-                        placeholder="Seu email"
-                    >
-
-                    <input
-                        type="tel"
-                        id="telefoneVendedor"
-                        placeholder="Telefone / WhatsApp"
-                    >
-
-                    <input
-                        type="password"
-                        id="senhaNovoVendedor"
-                        placeholder="Crie uma senha (mínimo 6 caracteres)"
-                    >
-
-                    <button
-                        id="btnCriarContaVendedor"
-                        class="btn btn-publicar"
-                        type="button">
-                        Criar conta
-                    </button>
-
-                    <p>
-                        Já tem conta?
-                        <button
-                            id="btnMostrarLogin"
-                            type="button">
-                            Entrar
-                        </button>
-                    </p>
-
-                </div>
+                <button
+                    id="btnAbrirCadastro"
+                    class="btn btn-publicar"
+                    type="button"
+                >
+                    Criar conta
+                </button>
 
             </div>
 
 
+            <!-- UTILIZADOR AUTENTICADO -->
+
             <div
-                id="painelVendedorLogado"
-                style="display:none;">
+                id="acoesUtilizador"
+                style="display:none;"
+            >
 
-                <h3 id="nomeVendedorLogado">
-                    Vendedor
-                </h3>
+                <button
+                    id="btnAbrirMinhaConta"
+                    class="btn"
+                    type="button"
+                >
+                    👤 Minha conta
+                </button>
 
-                <p id="mensagemVendedor"></p>
+            </div>
 
-                <div id="areaMinhaLoja">
+        </div>
 
-                    <h3>Minha Loja</h3>
+    </header>
+
+
+    <main class="container">
+
+
+        <!-- =========================
+             LOGIN
+        ========================== -->
+
+        <section
+            id="secaoLogin"
+            class="formulario"
+            style="display:none;"
+        >
+
+            <button
+                class="btn-fechar"
+                data-fechar="secaoLogin"
+                type="button"
+            >
+                ×
+            </button>
+
+            <h2>Entrar</h2>
+
+            <input
+                id="emailLogin"
+                type="email"
+                placeholder="Seu email"
+            >
+
+            <input
+                id="senhaLogin"
+                type="password"
+                placeholder="Sua senha"
+            >
+
+            <button
+                id="btnLogin"
+                class="btn btn-publicar"
+                type="button"
+            >
+                Entrar
+            </button>
+
+            <p id="mensagemLogin"></p>
+
+            <p>
+                Ainda não tem conta?
+
+                <button
+                    id="irParaCadastro"
+                    type="button"
+                >
+                    Criar conta
+                </button>
+            </p>
+
+        </section>
+
+
+        <!-- =========================
+             CRIAR CONTA
+        ========================== -->
+
+        <section
+            id="secaoCadastro"
+            class="formulario"
+            style="display:none;"
+        >
+
+            <button
+                class="btn-fechar"
+                data-fechar="secaoCadastro"
+                type="button"
+            >
+                ×
+            </button>
+
+            <h2>Criar conta</h2>
+
+            <input
+                id="nomeCadastro"
+                type="text"
+                placeholder="Seu nome"
+            >
+
+            <input
+                id="emailCadastro"
+                type="email"
+                placeholder="Seu email"
+            >
+
+            <input
+                id="senhaCadastro"
+                type="password"
+                placeholder="Crie uma senha"
+            >
+
+            <button
+                id="btnCriarConta"
+                class="btn btn-publicar"
+                type="button"
+            >
+                Criar conta
+            </button>
+
+            <p id="mensagemCadastro"></p>
+
+            <p>
+                Já tem conta?
+
+                <button
+                    id="irParaLogin"
+                    type="button"
+                >
+                    Entrar
+                </button>
+            </p>
+
+        </section>
+
+
+        <!-- =========================
+             MINHA CONTA
+        ========================== -->
+
+        <section
+            id="secaoMinhaConta"
+            style="display:none;"
+        >
+
+            <div class="area-conta">
+
+                <div class="conta-topo">
+
+                    <div>
+
+                        <h2 id="nomeUtilizadorConta">
+                            Minha conta
+                        </h2>
+
+                        <p id="emailUtilizadorConta"></p>
+
+                    </div>
+
+                    <button
+                        id="btnSair"
+                        class="btn"
+                        type="button"
+                    >
+                        🚪 Sair
+                    </button>
+
+                </div>
+
+
+                <!-- CRIAR LOJA -->
+
+                <div
+                    id="areaCriarLoja"
+                    class="formulario"
+                >
+
+                    <h3>🏪 Criar uma loja</h3>
 
                     <input
+                        id="nomeNovaLoja"
                         type="text"
-                        id="nomeMinhaLoja"
-                        placeholder="Nome da sua loja"
+                        placeholder="Nome da loja"
                     >
 
                     <textarea
-                        id="descricaoMinhaLoja"
-                        placeholder="Descrição da sua loja"
-                        rows="3"
+                        id="descricaoNovaLoja"
+                        placeholder="Descrição da loja"
+                        rows="4"
                     ></textarea>
 
                     <input
+                        id="whatsappNovaLoja"
                         type="tel"
-                        id="whatsappMinhaLoja"
                         placeholder="WhatsApp da loja"
                     >
 
                     <button
-                        id="btnCriarMinhaLoja"
+                        id="btnCriarLoja"
                         class="btn btn-publicar"
-                        type="button">
-                        Criar minha loja
+                        type="button"
+                    >
+                        Criar loja
                     </button>
 
-                    <p id="mensagemMinhaLoja"></p>
-
-                    <div
-                        id="painelLojaCriada"
-                        style="display:none; margin-top:20px;">
-
-                        <h3 id="nomeLojaCriada"></h3>
-
-                        <p id="descricaoLojaCriada"></p>
-
-                        <button
-                            id="btnEntrarMinhaLoja"
-                            class="btn btn-publicar"
-                            type="button">
-                            🏪 Entrar na minha loja
-                        </button>
-
-                    </div>
-
-                    <div
-                        id="areaInternaMinhaLoja"
-                        style="display:none; margin-top:20px;">
-
-                        <h3 id="tituloAreaMinhaLoja">
-                            Minha Loja
-                        </h3>
-
-                        <p id="descricaoAreaMinhaLoja"></p>
-
-                        <button
-                            id="btnAdicionarNaMinhaLoja"
-                            class="btn btn-publicar"
-                            type="button">
-                            ➕ Adicionar produto ou serviço
-                        </button>
-
-                    </div>
+                    <p id="mensagemCriarLoja"></p>
 
                 </div>
 
-                <button
-                    id="btnSairVendedor"
-                    class="btn"
-                    type="button">
-                    🚪 Sair da conta
-                </button>
+
+                <!-- MINHAS LOJAS -->
+
+                <section
+                    id="secaoMinhasLojas"
+                >
+
+                    <h3>Minhas lojas</h3>
+
+                    <div
+                        id="listaMinhasLojas"
+                    >
+                        A carregar...
+                    </div>
+
+                </section>
 
             </div>
 
-        </div>
-
-    </section>
+        </section>
 
 
-    <section class="secao-admin">
-        <button id="btnAdmin" class="btn-secao" type="button">
-            🔐 ADMINISTRADOR
-        </button>
+        <!-- =========================
+             PLATAFORMA
+        ========================== -->
 
-        <div id="areaLoginAdmin" class="formulario fechado">
+        <section
+            id="secaoPlataforma"
+        >
 
-            <h2>Acesso administrativo</h2>
+            <div class="apresentacao">
 
-            <input
-                type="password"
-                id="senhaAdmin"
-                placeholder="Senha de administrador"
+                <h2>
+                    Bem-vindo à GC-AngGlobal
+                </h2>
+
+                <p>
+                    Descubra lojas, produtos
+                    e serviços disponíveis
+                    na plataforma.
+                </p>
+
+            </div>
+
+
+            <!-- LOJAS CADASTRADAS -->
+
+            <section
+                id="secaoLojasDisponiveis"
             >
 
-            <button
-                id="btnLoginAdmin"
-                class="btn btn-publicar"
-                type="button">
-                Entrar
-            </button>
+                <h2>
+                    🏪 Lojas cadastradas
+                </h2>
 
-            <p id="mensagemLoginAdmin" class="mensagem-cadastro"></p>
+                <p
+                    id="mensagemLojas"
+                >
+                    A carregar lojas...
+                </p>
+
+                <div
+                    id="listaLojas"
+                ></div>
+
+            </section>
+
+        </section>
+
+
+        <!-- =========================
+             LOJA ABERTA
+        ========================== -->
+
+        <section
+            id="secaoLoja"
+            style="display:none;"
+        >
 
             <button
-                id="btnSairAdmin"
+                id="btnVoltarPlataforma"
                 class="btn"
                 type="button"
-                style="display:none;">
-                🚪 Sair
+            >
+                ← Voltar à GC-AngGlobal
             </button>
 
-        </div>
-    </section>
 
+            
+<div class="cabecalho-loja">
 
-    <section class="secao-gerir">
-        <button id="btnGerir" class="btn-secao" type="button">
-            ADICIONAR PRODUTO / SERVIÇO
-            <span id="setaGerir">▼</span>
+    <h2
+        id="nomeLojaAberta"
+    ></h2>
+
+    <p
+        id="descricaoLojaAberta"
+    ></p>
+
+    <div
+        id="areaLinkLoja"
+        style="display:none;"
+    >
+
+        <p>
+            🔗 Link público da sua loja
+        </p>
+
+        <input
+            id="linkPublicoLoja"
+            type="text"
+            readonly
+        >
+
+        <button
+            id="btnCopiarLinkLoja"
+            class="btn"
+            type="button"
+        >
+            📋 Copiar link
         </button>
 
-        <div id="formularioProduto" class="formulario fechado">
+        <p
+            id="mensagemLinkLoja"
+        ></p>
 
-            <h2>Novo produto ou serviço</h2>
+    </div>
 
-            <label for="tipoProduto">Tipo</label>
-            <select id="tipoProduto">
-                <option value="produto">Produto</option>
-                <option value="servico">Serviço</option>
-            </select>
+</div>
 
-            <label for="lojaProduto">Loja</label>
-            <select id="lojaProduto">
-                <option value="">Selecione a loja</option>
-            </select>
 
-            <label for="nomeProduto">Nome</label>
-            <input
-                type="text"
-                id="nomeProduto"
-                placeholder="Nome do produto ou serviço"
+
+            <!-- PRODUTOS E SERVIÇOS DA LOJA -->
+
+            <section
+                id="secaoProdutosLoja"
             >
 
-            <label for="descricaoProduto">Descrição</label>
-            <textarea
-                id="descricaoProduto"
-                placeholder="Descreva o produto ou serviço"
-                rows="4"
-            ></textarea>
+                <h3>
+                    Produtos e serviços
+                </h3>
 
-            <label for="precoProduto">Preço (Kz)</label>
-            <input
-                type="number"
-                id="precoProduto"
-                placeholder="Ex.: 5000"
-                min="0"
+                <div
+                    id="listaProdutosLoja"
+                >
+                    A carregar...
+                </div>
+
+            </section>
+
+
+            <!-- PEDIDO -->
+
+            <section
+                id="secaoPedido"
             >
 
-            <label>Imagem</label>
+                <h3>
+                    Meu pedido
+                </h3>
 
-            <div class="opcoes-imagem">
-
-                <label
-                    for="imagemProduto"
-                    class="btn btn-imagem">
-                    🖼️ Escolher foto
-                </label>
-
-                <input
-                    type="file"
-                    id="imagemProduto"
-                    accept="image/*"
-                    hidden
+                <div
+                    id="listaPedido"
                 >
+                    <p>
+                        O seu pedido está vazio.
+                    </p>
+                </div>
 
-                <label
-                    for="cameraProduto"
-                    class="btn btn-imagem">
-                    📷 Tirar foto
-                </label>
-
-                <input
-                    type="file"
-                    id="cameraProduto"
-                    accept="image/*"
-                    capture="environment"
-                    hidden
+                <p
+                    id="totalPedido"
                 >
+                    Total: 0 Kz
+                </p>
 
-            </div>
-
-            <p id="mensagemImagem" class="mensagem-imagem"></p>
-
-            <button id="btnPublicar" class="btn btn-publicar" type="button">
-                Publicar
-            </button>
-
-            <p id="mensagemCadastro" class="mensagem-cadastro"></p>
-
-        </div>
-    </section>
-
-
-    <!-- ==================== GESTÃO DE LOJAS ==================== -->
-
-    <section class="secao-admin-lojas">
-
-        <button id="btnLojas" class="btn-secao" type="button">
-            🏪 GERIR LOJAS
-        </button>
-
-        <div id="areaLojas" class="formulario fechado">
-
-            <h3>Gestão de Lojas</h3>
-
-            <button id="btnCriarLoja" type="button">
-                ➕ Criar nova loja
-            </button>
-
-            <p id="mensagemLoja"></p>
-
-            <div id="listaLojas">
-                A carregar...
-            </div>
-
-        </div>
-
-    </section>
-
-    <!-- ==================== SELEÇÃO DE LOJA ==================== -->
-
-    <section class="secao-selecao-loja">
-
-        <label for="seletorLojaVitrine">
-            ESCOLHA UMA LOJA
-        </label>
-
-        <select id="seletorLojaVitrine">
-            <option value="">Selecione uma loja</option>
-        </select>
-
-        <p id="mensagemSelecaoLoja"></p>
-
-    </section>
-
-    <section class="secao-loja">
-        <button id="btnProdutos" class="btn-secao" type="button">
-            PRODUTOS E SERVIÇOS
-            <span id="setaProdutos">▼</span>
-        </button>
-
-        <div id="listaProdutos" class="produtos fechado"></div>
-
-        <div id="detalhesProduto" class="detalhes-produto fechado">
-            <div class="detalhes-produto-conteudo">
-                <button id="fecharDetalhesProduto" class="btn-fechar-detalhes" type="button">
-                    Fechar
+                <button
+                    id="btnFinalizarPedido"
+                    class="btn btn-publicar"
+                    type="button"
+                    style="display:none;"
+                >
+                    Finalizar pedido
                 </button>
 
-                <div id="detalhesProdutoConteudo"></div>
-            </div>
-        </div>
-    </section>
-
-    <section class="carrinho">
-        <button id="btnPedido" class="btn-secao" type="button">
-            MEU PEDIDO
-            <span id="setaPedido">▼</span>
-        </button>
-
-        <div id="conteudoPedido" class="conteudo-pedido fechado">
-
-            <div id="listaCarrinho">
-                <p class="carrinho-vazio">
-                    O seu pedido está vazio.
-                </p>
-            </div>
-
-            <div id="total" class="total">
-                Total: 0 Kz
-            </div>
-
-            <button
-                id="btnWhatsApp"
-                class="btn btn-whatsapp"
-                style="display:none;">
-                Finalizar pedido pelo WhatsApp
-            </button>
-
-        </div>
-    </section>
-
-</main>
-
-<script src="config.js?v=20260901" defer></script>
-<script src="products.js?v=20260901" defer></script>
-<script src="navigation.js?v=20260901" defer></script>
-<script src="admin.js?v=20260901" defer></script>
-<script src="script.js?v=20260901" defer></script>
+            </section>
 
 
+            <!-- ÁREA INTERNA DO DONO -->
+
+            <section
+                id="secaoGestaoLoja"
+                style="display:none;"
+            >
+
+                <h3>
+                    Gerir minha loja
+                </h3>
+
+                <button
+                    id="btnMostrarFormularioProduto"
+                    class="btn"
+                    type="button"
+                >
+                    ➕ Adicionar produto ou serviço
+                </button>
+
+
+                <div
+                    id="formularioProduto"
+                    class="formulario"
+                    style="display:none;"
+                >
+
+                    <h3>
+                        Novo produto ou serviço
+                    </h3>
+
+
+                    <select
+                        id="tipoProduto"
+                    >
+                        <option
+                            value="produto"
+                        >
+                            Produto
+                        </option>
+
+                        <option
+                            value="servico"
+                        >
+                            Serviço
+                        </option>
+
+                    </select>
+
+
+                    <input
+                        id="nomeProduto"
+                        type="text"
+                        placeholder="Nome"
+                    >
+
+
+                    <textarea
+                        id="descricaoProduto"
+                        placeholder="Descrição"
+                        rows="4"
+                    ></textarea>
+
+
+                    <input
+                        id="precoProduto"
+                        type="number"
+                        placeholder="Preço em Kz"
+                        min="0"
+                    >
+
+
+                    <input
+                        id="imagemProduto"
+                        type="file"
+                        accept="image/*"
+                    >
+
+
+                    <button
+                        id="btnPublicarProduto"
+                        class="btn btn-publicar"
+                        type="button"
+                    >
+                        Publicar
+                    </button>
+
+
+                    <p
+                        id="mensagemProduto"
+                    ></p>
+
+                </div>
+
+            </section>
+
+        </section>
+
+
+    </main>
+
+
+    <script src="/products.js"></script>
+    <script src="/script.js"></script>
 
 </body>
 </html>
