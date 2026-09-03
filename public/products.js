@@ -962,6 +962,96 @@ document.addEventListener(
 );
 
 
+
+// ==================== ESCAPAR HTML ====================
+
+function escaparHTML(valor) {
+
+    return String(valor ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+// ============================================================
+// FUNÇÕES AUXILIARES
+// ============================================================
+
+if (typeof escaparHTML !== "function") {
+
+    function escaparHTML(valor) {
+
+        return String(valor ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+}
+
+
+if (typeof formatarKz !== "function") {
+
+    function formatarKz(valor) {
+
+        const numero =
+            Number(valor) || 0;
+
+        return new Intl.NumberFormat(
+            "pt-AO",
+            {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }
+        ).format(numero) + " Kz";
+    }
+}
+
+
+if (typeof lerImagemComoBase64 !== "function") {
+
+    function lerImagemComoBase64(arquivo) {
+
+        return new Promise(
+            function (resolve, reject) {
+
+                if (!arquivo) {
+                    resolve("");
+                    return;
+                }
+
+                const leitor =
+                    new FileReader();
+
+                leitor.onload =
+                    function () {
+                        resolve(
+                            leitor.result || ""
+                        );
+                    };
+
+                leitor.onerror =
+                    function () {
+                        reject(
+                            new Error(
+                                "Não foi possível ler a imagem."
+                            )
+                        );
+                    };
+
+                leitor.readAsDataURL(
+                    arquivo
+                );
+            }
+        );
+    }
+}
+
+
 // ==================== MOSTRAR PRODUTOS ====================
 
 function mostrarProdutos() {
@@ -1229,7 +1319,6 @@ function mostrarPedido() {
         lista.innerHTML =
             "";
 
-
         pedido.forEach(
             function (item) {
 
@@ -1244,7 +1333,7 @@ function mostrarPedido() {
 
                 linha.innerHTML = `
 
-                    <div>
+                    <div class="item-pedido-info">
 
                         <strong>
                             ${escaparHTML(
@@ -1260,7 +1349,8 @@ function mostrarPedido() {
 
                     </div>
 
-                    <div>
+
+                    <div class="item-pedido-controles">
 
                         <button
                             type="button"
@@ -1270,9 +1360,11 @@ function mostrarPedido() {
                             −
                         </button>
 
+
                         <strong>
                             ${item.quantidade}
                         </strong>
+
 
                         <button
                             type="button"
@@ -1324,7 +1416,6 @@ function mostrarPedido() {
     }
 }
 
-
 // ============================================================
 // PUBLICAR PRODUTO OU SERVIÇO
 // ============================================================
@@ -1371,11 +1462,9 @@ async function publicarProduto() {
             "mensagemPublicarProduto"
         );
 
-
     if (!lojaSelecionada) {
 
         if (mensagem) {
-
             mensagem.textContent =
                 "Abra primeiro a sua loja.";
         }
@@ -1383,15 +1472,12 @@ async function publicarProduto() {
         return;
     }
 
-
     const token =
         obterTokenUsuario();
-
 
     if (!token) {
 
         if (mensagem) {
-
             mensagem.textContent =
                 "Entre na sua conta.";
         }
@@ -1399,36 +1485,30 @@ async function publicarProduto() {
         return;
     }
 
-
     const tipo =
         document.getElementById(
             "tipoProduto"
         ).value;
-
 
     const nome =
         document.getElementById(
             "nomeProduto"
         ).value.trim();
 
-
     const descricao =
         document.getElementById(
             "descricaoProduto"
         ).value.trim();
-
 
     const preco =
         document.getElementById(
             "precoProduto"
         ).value;
 
-
     const inputImagem =
         document.getElementById(
             "imagemProduto"
         );
-
 
     if (
         !nome ||
@@ -1437,7 +1517,6 @@ async function publicarProduto() {
     ) {
 
         if (mensagem) {
-
             mensagem.textContent =
                 "Preencha nome, descrição e preço.";
         }
@@ -1445,10 +1524,7 @@ async function publicarProduto() {
         return;
     }
 
-
-    let imagem =
-        null;
-
+    let imagem = "";
 
     if (
         inputImagem &&
@@ -1466,7 +1542,6 @@ async function publicarProduto() {
         } catch (erro) {
 
             if (mensagem) {
-
                 mensagem.textContent =
                     "Não foi possível ler a imagem.";
             }
@@ -1475,39 +1550,29 @@ async function publicarProduto() {
         }
     }
 
-
     const botao =
         document.getElementById(
             "btnPublicarProduto"
         );
 
-
     if (botao) {
 
-        botao.disabled =
-            true;
-
+        botao.disabled = true;
         botao.textContent =
             "A publicar...";
     }
-
 
     try {
 
         const resposta =
             await fetch(
-
                 "/api/minhas-lojas/" +
                 lojaSelecionada.id +
                 "/produtos",
-
                 {
-
-                    method:
-                        "POST",
+                    method: "POST",
 
                     headers: {
-
                         "Content-Type":
                             "application/json",
 
@@ -1516,26 +1581,19 @@ async function publicarProduto() {
                             token
                     },
 
-                    body:
-                        JSON.stringify({
-
-                            tipo,
-                            nome,
-                            descricao,
-                            preco:
-                                Number(
-                                    preco
-                                ),
-
-                            imagem
-                        })
+                    body: JSON.stringify({
+                        tipo,
+                        nome,
+                        descricao,
+                        preco:
+                            Number(preco),
+                        imagem
+                    })
                 }
             );
 
-
         const resultado =
             await resposta.json();
-
 
         if (!resposta.ok) {
 
@@ -1545,64 +1603,105 @@ async function publicarProduto() {
             );
         }
 
+        // ====================================================
+        // O BACKEND DEVOLVEU O PRODUTO CRIADO.
+        // MOSTRAR IMEDIATAMENTE NA LOJA.
+        // ====================================================
+
+        if (resultado.produto) {
+
+            const produtoNovo = {
+                ...resultado.produto,
+
+                id:
+                    Number(
+                        resultado.produto.id
+                    ),
+
+                preco:
+                    Number(
+                        resultado.produto.preco
+                    ),
+
+                loja_id:
+                    Number(
+                        resultado.produto.loja_id
+                    )
+            };
+
+            produtos =
+                produtos.filter(
+                    produto =>
+                        Number(produto.id) !==
+                        Number(produtoNovo.id)
+                );
+
+            produtos.unshift(
+                produtoNovo
+            );
+
+            mostrarProdutos();
+        }
 
         if (mensagem) {
 
             mensagem.textContent =
-                "Publicado com sucesso.";
+                tipo === "servico"
+                    ? "✅ Serviço publicado com sucesso."
+                    : "✅ Produto publicado com sucesso.";
         }
-
 
         document.getElementById(
             "nomeProduto"
-        ).value =
-            "";
-
+        ).value = "";
 
         document.getElementById(
             "descricaoProduto"
-        ).value =
-            "";
-
+        ).value = "";
 
         document.getElementById(
             "precoProduto"
-        ).value =
-            "";
-
+        ).value = "";
 
         if (inputImagem) {
-
-            inputImagem.value =
-                "";
+            inputImagem.value = "";
         }
-
 
         const formulario =
             document.getElementById(
                 "formularioProduto"
             );
 
-
         if (formulario) {
-
             formulario.style.display =
                 "none";
         }
 
+        // Recarregar da base de dados para sincronizar.
+        // O produto já foi mostrado acima mesmo antes desta chamada.
 
-        await carregarProdutosDaLoja(
-            lojaSelecionada.id
-        );
+        try {
+
+            await carregarProdutosDaLoja(
+                lojaSelecionada.id
+            );
+
+        } catch (erroCarregar) {
+
+            console.error(
+                "Produto criado, mas não foi possível sincronizar a lista:",
+                erroCarregar
+            );
+        }
 
     } catch (erro) {
 
         console.error(
+            "Erro ao publicar:",
             erro
         );
 
         if (mensagem) {
-
             mensagem.textContent =
                 erro.message;
         }
@@ -1611,9 +1710,7 @@ async function publicarProduto() {
 
         if (botao) {
 
-            botao.disabled =
-                false;
-
+            botao.disabled = false;
             botao.textContent =
                 "Publicar";
         }
@@ -1702,7 +1799,6 @@ async function finalizarPedido() {
                 "/pedidos",
 
                 {
-
                     method:
                         "POST",
 
@@ -1740,16 +1836,174 @@ async function finalizarPedido() {
         }
 
 
-        alert(
-            "Pedido enviado com sucesso."
-        );
+        // ====================================================
+        // OBTER O WHATSAPP DA LOJA
+        // ====================================================
 
+        let numeroLoja =
+            String(
+                lojaSelecionada.whatsapp ||
+                lojaSelecionada.whatsapp_numero ||
+                lojaSelecionada.telefone ||
+                ""
+            ).replace(
+                /\D/g,
+                ""
+            );
+
+
+        if (
+            numeroLoja.startsWith(
+                "00"
+            )
+        ) {
+
+            numeroLoja =
+                numeroLoja.slice(
+                    2
+                );
+        }
+
+
+        if (
+            numeroLoja.startsWith(
+                "0"
+            )
+        ) {
+
+            numeroLoja =
+                "244" +
+                numeroLoja.slice(
+                    1
+                );
+
+        } else if (
+            /^9\d{8}$/.test(
+                numeroLoja
+            )
+        ) {
+
+            numeroLoja =
+                "244" +
+                numeroLoja;
+        }
+
+
+        if (!numeroLoja) {
+
+            throw new Error(
+                "Esta loja não tem um número de WhatsApp configurado."
+            );
+        }
+
+
+        // ====================================================
+        // CRIAR LISTA DO PEDIDO
+        // ====================================================
+
+        const linhasPedido =
+            pedido
+                .map(
+                    function (item) {
+
+                        const subtotal =
+                            Number(
+                                item.preco
+                            ) *
+                            Number(
+                                item.quantidade
+                            );
+
+
+                        return (
+                            "• " +
+                            item.nome +
+                            " — " +
+                            item.quantidade +
+                            " x " +
+                            formatarKz(
+                                item.preco
+                            ) +
+                            " = " +
+                            formatarKz(
+                                subtotal
+                            )
+                        );
+                    }
+                )
+                .join(
+                    "\n"
+                );
+
+
+        // ====================================================
+        // MENSAGEM DO WHATSAPP
+        // ====================================================
+
+        const mensagemWhatsApp =
+            "Olá, " +
+            lojaSelecionada.nome +
+            "!\n\n" +
+
+            "Gostaria de fazer este pedido:\n\n" +
+
+            linhasPedido +
+
+            "\n\nTOTAL: " +
+            formatarKz(
+                total
+            ) +
+
+            "\n\nCliente: " +
+            cliente_nome +
+
+            "\nWhatsApp do cliente: " +
+            cliente_whatsapp +
+
+            "\n\nAguardo a confirmação do pedido.";
+
+
+        const urlWhatsApp =
+            "https://wa.me/" +
+            numeroLoja +
+            "?text=" +
+            encodeURIComponent(
+                mensagemWhatsApp
+            );
+
+
+        // ====================================================
+        // LIMPAR PEDIDO
+        // ====================================================
 
         pedido =
             [];
 
-
         mostrarPedido();
+
+
+        // ====================================================
+        // ABRIR WHATSAPP
+        // ====================================================
+
+        // ====================================================
+        // ABRIR DIRETAMENTE O APLICATIVO WHATSAPP NO ANDROID
+        // ====================================================
+
+        const urlWhatsAppApp =
+            "intent://send?phone=" +
+            numeroLoja +
+            "&text=" +
+            encodeURIComponent(
+                mensagemWhatsApp
+            ) +
+            "#Intent;scheme=whatsapp;" +
+            "package=com.whatsapp;" +
+            "end";
+
+
+        window.location.href =
+            urlWhatsAppApp;
 
 
     } catch (erro) {
@@ -1759,7 +2013,6 @@ async function finalizarPedido() {
         );
     }
 }
-
 
 // ============================================================
 // EVENTOS DA LOJA
