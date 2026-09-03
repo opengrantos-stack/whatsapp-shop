@@ -384,11 +384,46 @@ async function carregarProdutosDaLoja(
 
     try {
 
+        const origem =
+            window.gcOrigemLoja ||
+            "plataforma";
+
+        let url =
+            "/api/lojas/" +
+            lojaId +
+            "/produtos";
+
+        const opcoes =
+            {};
+
+        if (origem === "conta") {
+
+            const token =
+                obterTokenUsuario();
+
+            if (!token) {
+
+                throw new Error(
+                    "Utilizador não autenticado."
+                );
+            }
+
+            url =
+                "/api/minhas-lojas/" +
+                lojaId +
+                "/produtos";
+
+            opcoes.headers = {
+                "Authorization":
+                    "Bearer " +
+                    token
+            };
+        }
+
         const resposta =
             await fetch(
-                "/api/lojas/" +
-                lojaId +
-                "/produtos"
+                url,
+                opcoes
             );
 
         if (!resposta.ok) {
@@ -398,8 +433,16 @@ async function carregarProdutosDaLoja(
             );
         }
 
-        const dados =
+        const resultado =
             await resposta.json();
+
+        const dados =
+            Array.isArray(resultado)
+                ? resultado
+                : (
+                    resultado.produtos ||
+                    []
+                );
 
         produtos =
             dados.map(
@@ -1325,7 +1368,7 @@ async function publicarProduto() {
 
     const mensagem =
         document.getElementById(
-            "mensagemProduto"
+            "mensagemPublicarProduto"
         );
 
 
