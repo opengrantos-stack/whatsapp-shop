@@ -18,6 +18,26 @@ const pool = new Pool({
 
 
 // ============================================================
+// PROTEÇÃO DO POOL POSTGRESQL
+// ============================================================
+
+// Evita que uma ligação ociosa interrompida pelo servidor
+// PostgreSQL derrube toda a aplicação Node.js.
+
+pool.on(
+    'error',
+    function (erro) {
+
+        console.error(
+            'Erro numa ligação PostgreSQL ociosa:',
+            erro.message
+        );
+
+    }
+);
+
+
+// ============================================================
 // UTILITÁRIOS
 // ============================================================
 
@@ -782,6 +802,7 @@ app.get(
                         descricao,
                         logo,
                         whatsapp,
+                        vendedor_id,
                         slug,
                         criado_em
                     FROM gc_angglobal_stores
@@ -829,6 +850,7 @@ app.get(
                         descricao,
                         logo,
                         whatsapp,
+                        vendedor_id,
                         slug,
                         criado_em
                     FROM gc_angglobal_stores

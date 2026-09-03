@@ -343,154 +343,249 @@ async function criarConta() {
 
 async function abrirMinhaConta() {
 
-    const secao =
+    const cabecalhoPlataforma =
         document.getElementById(
-            "secaoMinhaConta"
+            "cabecalhoPlataforma"
         );
 
-    if (!obterTokenUsuario()) {
-        return;
-    }
-
-    document.getElementById(
-        "secaoLogin"
-    ).style.display = "none";
-
-    document.getElementById(
-        "secaoCadastro"
-    ).style.display = "none";
-
-    if (secao) {
-        secao.style.display =
-            "block";
-
-        secao.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
-    }
-
-    await carregarMinhasLojas();
-}
-
-
-// ============================================================
-// MINHAS LOJAS
-// ============================================================
-
-async function carregarMinhasLojas() {
-
-    const lista =
-        document.getElementById(
-            "listaMinhasLojas"
-        );
-
-    if (!lista) {
-        return;
-    }
+    // ========================================================
+    // VERIFICAR SESSÃO
+    // ========================================================
 
     const token =
         obterTokenUsuario();
 
-    if (!token) {
-        lista.innerHTML =
-            "<p>Entre na sua conta para ver as suas lojas.</p>";
+    const usuario =
+        obterUsuarioLocal();
+
+
+    // Se não houver sessão, abrir o login.
+
+    if (!token || !usuario) {
+
+        const secaoLogin =
+            document.getElementById(
+                "secaoLogin"
+            );
+
+        const secaoCadastro =
+            document.getElementById(
+                "secaoCadastro"
+            );
+
+        const secaoMinhaConta =
+            document.getElementById(
+                "secaoMinhaConta"
+            );
+
+        const secaoPlataforma =
+            document.getElementById(
+                "secaoPlataforma"
+            );
+
+        const secaoLoja =
+            document.getElementById(
+                "secaoLoja"
+            );
+
+
+        if (secaoMinhaConta) {
+
+            secaoMinhaConta.style.display =
+                "none";
+        }
+
+
+        if (secaoLoja) {
+
+            secaoLoja.style.display =
+                "none";
+        }
+
+
+        if (secaoPlataforma) {
+
+            secaoPlataforma.style.display =
+                "block";
+        }
+
+
+        if (secaoCadastro) {
+
+            secaoCadastro.style.display =
+                "none";
+        }
+
+
+        if (secaoLogin) {
+
+            secaoLogin.style.display =
+                "block";
+        }
+
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
         return;
     }
 
-    lista.innerHTML =
-        "<p>A carregar as suas lojas...</p>";
+
+    // ========================================================
+    // ABRIR A CONTA
+    // ========================================================
+
+    const secaoMinhaConta =
+        document.getElementById(
+            "secaoMinhaConta"
+        );
+
+    const secaoPlataforma =
+        document.getElementById(
+            "secaoPlataforma"
+        );
+
+    const secaoLoja =
+        document.getElementById(
+            "secaoLoja"
+        );
+
+    const secaoLogin =
+        document.getElementById(
+            "secaoLogin"
+        );
+
+    const secaoCadastro =
+        document.getElementById(
+            "secaoCadastro"
+        );
+
+
+    // Fechar outras áreas.
+
+    if (secaoPlataforma) {
+
+        secaoPlataforma.style.display =
+            "none";
+    }
+
+
+    if (secaoLoja) {
+
+        secaoLoja.style.display =
+            "none";
+    }
+
+
+    if (secaoLogin) {
+
+        secaoLogin.style.display =
+            "none";
+    }
+
+
+    if (secaoCadastro) {
+
+        secaoCadastro.style.display =
+            "none";
+    }
+
+
+    // Esconder completamente o cabeçalho
+    // da plataforma enquanto a conta estiver aberta.
+
+    if (cabecalhoPlataforma) {
+
+        cabecalhoPlataforma.style.display =
+            "none";
+    }
+
+
+    // Atualizar os dados da conta.
+
+    atualizarInterfaceConta();
+
+
+    // Abrir a área da conta.
+
+    if (secaoMinhaConta) {
+
+        secaoMinhaConta.style.display =
+            "block";
+    }
+
+
+    // Garantir que o modo loja não permanece ativo.
+
+    document.body.classList.remove(
+        "modo-loja-aberta"
+    );
+
+
+    // Carregar as lojas pertencentes à conta.
 
     try {
 
-        const resposta =
-            await fetch(
-                "/api/minhas-lojas",
-                {
-                    headers: {
-                        "Authorization":
-                            "Bearer " + token
-                    }
-                }
-            );
-
-        const resultado =
-            await resposta.json();
-
-        if (!resposta.ok) {
-            throw new Error(
-                resultado.erro ||
-                "Não foi possível carregar as lojas."
-            );
-        }
-
-        if (!resultado.lojas.length) {
-
-            lista.innerHTML =
-                "<p>Ainda não possui lojas.</p>";
-
-            return;
-        }
-
-        lista.innerHTML = "";
-
-        resultado.lojas.forEach(
-            function (loja) {
-
-                const bloco =
-                    document.createElement(
-                        "div"
-                    );
-
-                bloco.className =
-                    "minha-loja-card";
-
-                bloco.innerHTML = `
-                    <h4>🏪 ${loja.nome}</h4>
-
-                    <p>
-                        ${loja.descricao || ""}
-                    </p>
-
-                    <button
-                        class="btn"
-                        type="button"
-                        data-abrir-loja="${loja.id}"
-                    >
-                        Entrar na loja
-                    </button>
-
-                    <p>
-                        🔗 ${window.location.origin}/loja/${loja.slug}
-                    </p>
-
-                    <button
-                        class="btn"
-                        type="button"
-                        data-copiar-link="${loja.id}"
-                        data-link="${window.location.origin}/loja/${loja.slug}"
-                    >
-                        📋 Copiar link
-                    </button>
-                `;
-
-                lista.appendChild(
-                    bloco
-                );
-            }
-        );
+        await carregarMinhasLojas();
 
     } catch (erro) {
 
         console.error(
-            "Erro ao carregar minhas lojas:",
+            "Erro ao carregar as lojas da conta:",
             erro
         );
-
-        lista.innerHTML =
-            "<p>Não foi possível carregar as suas lojas.</p>";
     }
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
 }
+
+
+function sairDaConta() {
+
+    const cabecalhoPlataforma =
+        document.getElementById(
+            "cabecalhoPlataforma"
+        );
+
+    if (cabecalhoPlataforma) {
+
+        cabecalhoPlataforma.style.removeProperty(
+            "display"
+        );
+    }
+
+    limparSessao();
+
+    lojaAtual =
+        null;
+
+    document.getElementById(
+        "secaoMinhaConta"
+    ).style.display = "none";
+
+    document.getElementById(
+        "secaoLoja"
+    ).style.display = "none";
+
+    document.getElementById(
+        "secaoPlataforma"
+    ).style.display = "block";
+
+    atualizarInterfaceConta();
+
+    window.history.pushState(
+        {},
+        "",
+        "/"
+    );
+}
+
 
 
 // ============================================================
@@ -519,16 +614,10 @@ async function criarLoja() {
             "mensagemCriarLoja"
         );
 
-    const token =
-        obterTokenUsuario();
-
-    if (!token) {
-
-        mensagem.textContent =
-            "Entre na sua conta primeiro.";
-
-        return;
-    }
+    const botao =
+        document.getElementById(
+            "btnCriarLoja"
+        );
 
     if (!nome) {
 
@@ -538,14 +627,26 @@ async function criarLoja() {
         return;
     }
 
-    const botao =
-        document.getElementById(
-            "btnCriarLoja"
-        );
+
+    const token =
+        obterTokenUsuario();
+
+    if (!token) {
+
+        mensagem.textContent =
+            "A sua sessão expirou. Entre novamente.";
+
+        return;
+    }
+
 
     botao.disabled = true;
+
     botao.textContent =
         "A criar loja...";
+
+    mensagem.textContent = "";
+
 
     try {
 
@@ -554,55 +655,74 @@ async function criarLoja() {
                 "/api/minhas-lojas",
                 {
                     method: "POST",
+
                     headers: {
                         "Content-Type":
                             "application/json",
+
                         "Authorization":
                             "Bearer " + token
                     },
+
                     body: JSON.stringify({
                         nome,
                         descricao,
+                        logo: "",
                         whatsapp
                     })
                 }
             );
 
+
         const resultado =
             await resposta.json();
 
+
         if (!resposta.ok) {
+
             throw new Error(
                 resultado.erro ||
                 "Não foi possível criar a loja."
             );
         }
 
+
         mensagem.textContent =
-            "Loja criada com sucesso.";
+            "✅ Loja criada com sucesso!";
+
 
         document.getElementById(
             "nomeNovaLoja"
         ).value = "";
 
+
         document.getElementById(
             "descricaoNovaLoja"
         ).value = "";
+
 
         document.getElementById(
             "whatsappNovaLoja"
         ).value = "";
 
+
         await carregarMinhasLojas();
+
 
     } catch (erro) {
 
+        console.error(
+            "Erro ao criar loja:",
+            erro
+        );
+
         mensagem.textContent =
-            erro.message;
+            "❌ " + erro.message;
 
     } finally {
 
         botao.disabled = false;
+
         botao.textContent =
             "Criar loja";
     }
@@ -610,77 +730,138 @@ async function criarLoja() {
 
 
 // ============================================================
-// COPIAR LINK
+// CARREGAR MINHAS LOJAS
 // ============================================================
 
-async function copiarLink(link) {
+async function carregarMinhasLojas() {
+
+    const lista =
+        document.getElementById(
+            "listaMinhasLojas"
+        );
+
+    if (!lista) {
+        return;
+    }
+
+
+    const token =
+        obterTokenUsuario();
+
+
+    if (!token) {
+
+        lista.innerHTML =
+            "Entre na sua conta para ver as suas lojas.";
+
+        return;
+    }
+
+
+    lista.innerHTML =
+        "A carregar...";
+
 
     try {
 
-        await navigator.clipboard.writeText(
-            link
-        );
-
-        return true;
-
-    } catch {
-
-        const area =
-            document.createElement(
-                "textarea"
+        const resposta =
+            await fetch(
+                "/api/minhas-lojas",
+                {
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                }
             );
 
-        area.value =
-            link;
 
-        document.body.appendChild(
-            area
+        const resultado =
+            await resposta.json();
+
+
+        if (!resposta.ok) {
+
+            throw new Error(
+                resultado.erro ||
+                "Não foi possível carregar as lojas."
+            );
+        }
+
+
+        const lojas =
+            resultado.lojas || [];
+
+
+        if (lojas.length === 0) {
+
+            lista.innerHTML =
+                "<p>Ainda não criou nenhuma loja.</p>";
+
+            return;
+        }
+
+
+        lista.innerHTML =
+            lojas.map(
+                loja => {
+
+                    const link =
+                        window.location.origin +
+                        "/loja/" +
+                        loja.slug;
+
+
+                    return `
+                        <div class="card-loja-minha">
+
+                            <h3>
+                                ${loja.nome}
+                            </h3>
+
+                            <p>
+                                ${loja.descricao || ""}
+                            </p>
+
+                            <p>
+                                📱 ${loja.whatsapp || ""}
+                            </p>
+
+                            <button
+                                class="btn"
+                                type="button"
+                                data-abrir-loja="${loja.id}"
+                            >
+                                Abrir loja
+                            </button>
+
+                            <button
+                                class="btn"
+                                type="button"
+                                data-copiar-link
+                                data-link="${link}"
+                            >
+                                📋 Copiar link
+                            </button>
+
+                        </div>
+                    `;
+                }
+            ).join("");
+
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao carregar minhas lojas:",
+            erro
         );
 
-        area.select();
-
-        document.execCommand(
-            "copy"
-        );
-
-        area.remove();
-
-        return true;
+        lista.innerHTML =
+            "❌ " + erro.message;
     }
 }
 
-
-// ============================================================
-// SAIR
-// ============================================================
-
-function sairDaConta() {
-
-    limparSessao();
-
-    lojaAtual =
-        null;
-
-    document.getElementById(
-        "secaoMinhaConta"
-    ).style.display = "none";
-
-    document.getElementById(
-        "secaoLoja"
-    ).style.display = "none";
-
-    document.getElementById(
-        "secaoPlataforma"
-    ).style.display = "block";
-
-    atualizarInterfaceConta();
-
-    window.history.pushState(
-        {},
-        "",
-        "/"
-    );
-}
 
 
 // ============================================================
@@ -854,8 +1035,87 @@ document.addEventListener(
                     const id =
                         abrir.dataset.abrirLoja;
 
-                    window.location.href =
-                        "/?loja=" + id;
+                    const token =
+                        obterTokenUsuario();
+
+                    if (!token) {
+
+                        console.error(
+                            "Utilizador não autenticado."
+                        );
+
+                        return;
+                    }
+
+                    try {
+
+                        const resposta =
+                            await fetch(
+                                "/api/minhas-lojas",
+                                {
+                                    headers: {
+                                        "Authorization":
+                                            "Bearer " + token
+                                    }
+                                }
+                            );
+
+                        const resultado =
+                            await resposta.json();
+
+                        if (!resposta.ok) {
+
+                            throw new Error(
+                                resultado.erro ||
+                                "Não foi possível carregar a loja."
+                            );
+                        }
+
+                        const lojas =
+                            resultado.lojas || [];
+
+                        const loja =
+                            lojas.find(
+                                item =>
+                                    String(item.id) ===
+                                    String(id)
+                            );
+
+                        if (!loja) {
+
+                            throw new Error(
+                                "Loja não encontrada."
+                            );
+                        }
+
+                        if (
+                            typeof abrirLoja ===
+                            "function"
+                        ) {
+
+                            await abrirLoja(
+                                loja,
+                                "conta"
+                            );
+
+                        } else {
+
+                            throw new Error(
+                                "Função abrirLoja não encontrada."
+                            );
+                        }
+
+                    } catch (erro) {
+
+                        console.error(
+                            "Erro ao abrir loja:",
+                            erro
+                        );
+
+                        alert(
+                            erro.message
+                        );
+                    }
 
                     return;
                 }

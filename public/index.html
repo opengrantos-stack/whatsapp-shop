@@ -22,7 +22,10 @@
          CABEÇALHO DA PLATAFORMA
     ========================== -->
 
-    <header class="cabecalho">
+    <header
+    id="cabecalhoPlataforma"
+    class="cabecalho"
+>
 
         <div class="cabecalho-logo">
             <img
@@ -389,14 +392,16 @@
         style="display:none;"
     >
 
-        <p>
-            🔗 Link público da sua loja
-        </p>
+        <!--
+            O link fica guardado internamente,
+            mas não aparece visualmente.
+        -->
 
         <input
             id="linkPublicoLoja"
             type="text"
             readonly
+            style="display:none;"
         >
 
         <button
@@ -404,7 +409,7 @@
             class="btn"
             type="button"
         >
-            📋 Copiar link
+            🔗 Copiar link da loja
         </button>
 
         <p
@@ -423,9 +428,92 @@
                 id="secaoProdutosLoja"
             >
 
+                <div
+                    id="secaoGestaoLoja"
+                    class="acoes-produtos-servicos"
+                    style="display:none;"
+                >
+
+                    <button
+                        id="btnAdicionarProduto"
+                        class="btn"
+                        type="button"
+                    >
+                        ➕ Produtos
+                    </button>
+
+
+                    <button
+                        id="btnAdicionarServico"
+                        class="btn"
+                        type="button"
+                    >
+                        ➕ Serviços
+                    </button>
+
+                </div>
+
+
+                <!-- FORMULÁRIO DE PRODUTO / SERVIÇO -->
+                <div
+                    id="formularioProduto"
+                    class="formulario"
+                    style="display:none;"
+                >
+
+                    <h3>
+                        Publicar produto ou serviço
+                    </h3>
+
+                    <input
+                        id="tipoProduto"
+                        type="hidden"
+                        value="produto"
+                    >
+
+                    <input
+                        id="nomeProduto"
+                        type="text"
+                        placeholder="Nome do produto ou serviço"
+                    >
+
+                    <textarea
+                        id="descricaoProduto"
+                        placeholder="Descrição"
+                        rows="4"
+                    ></textarea>
+
+                    <input
+                        id="precoProduto"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Preço em Kz"
+                    >
+
+                    <input
+                        id="imagemProduto"
+                        type="file"
+                        accept="image/*"
+                    >
+
+                    <button
+                        id="btnPublicarProduto"
+                        class="btn btn-publicar"
+                        type="button"
+                    >
+                        Publicar
+                    </button>
+
+                    <p id="mensagemPublicarProduto"></p>
+
+                </div>
+
+
                 <h3>
                     Produtos e serviços
                 </h3>
+
 
                 <div
                     id="listaProdutosLoja"
@@ -440,132 +528,61 @@
 
             <section
                 id="secaoPedido"
+                class="carrinho"
             >
 
-                <h3>
-                    Meu pedido
-                </h3>
-
-                <div
-                    id="listaPedido"
-                >
-                    <p>
-                        O seu pedido está vazio.
-                    </p>
-                </div>
-
-                <p
-                    id="totalPedido"
-                >
-                    Total: 0 Kz
-                </p>
-
                 <button
-                    id="btnFinalizarPedido"
-                    class="btn btn-publicar"
-                    type="button"
-                    style="display:none;"
-                >
-                    Finalizar pedido
-                </button>
-
-            </section>
-
-
-            <!-- ÁREA INTERNA DO DONO -->
-
-            <section
-                id="secaoGestaoLoja"
-                style="display:none;"
-            >
-
-                <h3>
-                    Gerir minha loja
-                </h3>
-
-                <button
-                    id="btnMostrarFormularioProduto"
-                    class="btn"
+                    id="btnPedido"
+                    class="btn-secao"
                     type="button"
                 >
-                    ➕ Adicionar produto ou serviço
+                    MEU PEDIDO
+                    <span
+                        id="setaPedido"
+                    >
+                        ▼
+                    </span>
                 </button>
 
 
                 <div
-                    id="formularioProduto"
-                    class="formulario"
-                    style="display:none;"
+                    id="conteudoPedido"
+                    class="conteudo-pedido fechado"
                 >
 
-                    <h3>
-                        Novo produto ou serviço
+                    <div
+                        id="listaPedido"
+                    >
+                        <p>
+                            O seu pedido está vazio.
+                        </p>
+                    </div>
+
+
+                    <h3
+                        id="totalPedido"
+                    >
+                        TOTAL: 0 Kz
                     </h3>
 
 
-                    <select
-                        id="tipoProduto"
-                    >
-                        <option
-                            value="produto"
-                        >
-                            Produto
-                        </option>
-
-                        <option
-                            value="servico"
-                        >
-                            Serviço
-                        </option>
-
-                    </select>
-
-
-                    <input
-                        id="nomeProduto"
-                        type="text"
-                        placeholder="Nome"
-                    >
-
-
-                    <textarea
-                        id="descricaoProduto"
-                        placeholder="Descrição"
-                        rows="4"
-                    ></textarea>
-
-
-                    <input
-                        id="precoProduto"
-                        type="number"
-                        placeholder="Preço em Kz"
-                        min="0"
-                    >
-
-
-                    <input
-                        id="imagemProduto"
-                        type="file"
-                        accept="image/*"
-                    >
-
-
                     <button
-                        id="btnPublicarProduto"
+                        id="btnFinalizarPedido"
                         class="btn btn-publicar"
                         type="button"
                     >
-                        Publicar
+                        Finalizar pedido
                     </button>
 
 
                     <p
-                        id="mensagemProduto"
+                        id="mensagemPedido"
                     ></p>
 
                 </div>
 
             </section>
+
 
         </section>
 

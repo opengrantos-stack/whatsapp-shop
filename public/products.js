@@ -2,6 +2,8 @@ let produtos = [];
 let lojasVitrine = [];
 let lojaSelecionada = null;
 
+let pedido = [];
+
 
 // ==================== CARREGAR LOJAS ====================
 
@@ -103,10 +105,16 @@ async function carregarLojasVitrine() {
 
 // ==================== ABRIR LOJA ====================
 
-async function abrirLoja(loja) {
+async function abrirLoja(
+    loja,
+    origem = "plataforma"
+) {
 
     lojaSelecionada =
         loja;
+
+    window.gcOrigemLoja =
+        origem;
 
     const secaoPlataforma =
         document.getElementById(
@@ -116,6 +124,16 @@ async function abrirLoja(loja) {
     const secaoLojaAberta =
         document.getElementById(
             "secaoLoja"
+        );
+
+    const secaoMinhaConta =
+        document.getElementById(
+            "secaoMinhaConta"
+        );
+
+    const secaoGestaoLoja =
+        document.getElementById(
+            "secaoGestaoLoja"
         );
 
     const nomeLoja =
@@ -138,10 +156,104 @@ async function abrirLoja(loja) {
             "none";
     }
 
+    if (secaoMinhaConta) {
+
+        secaoMinhaConta.style.display =
+            "none";
+    }
+
     if (secaoLojaAberta) {
 
         secaoLojaAberta.style.display =
             "block";
+    }
+
+    if (secaoGestaoLoja) {
+
+        secaoGestaoLoja.style.display =
+            "none";
+    }
+
+    // ========================================================
+    // VERIFICAR SE A CONTA ATUAL É DONA DESTA LOJA
+    // ========================================================
+
+    const token =
+        obterTokenUsuario();
+
+    if (token) {
+
+        try {
+
+            const resposta =
+                await fetch(
+                    "/api/minhas-lojas",
+                    {
+                        headers: {
+                            "Authorization":
+                                "Bearer " + token
+                        }
+                    }
+                );
+
+            if (!resposta.ok) {
+
+                console.error(
+                    "Não foi possível verificar as lojas da conta."
+                );
+
+            } else {
+
+                const resultado =
+                    await resposta.json();
+
+                const minhasLojas =
+                    resultado.lojas || [];
+
+                const souDono =
+                    minhasLojas.some(
+                        minhaLoja =>
+                            String(minhaLoja.id) ===
+                            String(loja.id)
+                    );
+
+                console.log(
+                    "Conta autenticada:",
+                    obterUsuarioLocal()
+                );
+
+                console.log(
+                    "Loja aberta:",
+                    loja.id
+                );
+
+                console.log(
+                    "Minhas lojas:",
+                    minhasLojas
+                );
+
+                console.log(
+                    "Sou dono desta loja?",
+                    souDono
+                );
+
+                if (
+                    souDono &&
+                    secaoGestaoLoja
+                ) {
+
+                    secaoGestaoLoja.style.display =
+                        "flex";
+                }
+            }
+
+        } catch (erro) {
+
+            console.error(
+                "Erro ao verificar o dono da loja:",
+                erro
+            );
+        }
     }
 
     if (nomeLoja) {
@@ -157,11 +269,9 @@ async function abrirLoja(loja) {
             "";
     }
 
-
     configurarLinkPublicoLoja(
         loja
     );
-
 
     await carregarProdutosDaLoja(
         loja.id
@@ -173,10 +283,13 @@ async function abrirLoja(loja) {
     });
 }
 
-
 // ==================== FECHAR LOJA ====================
 
 function voltarParaPlataforma() {
+
+    const origem =
+        window.gcOrigemLoja ||
+        "plataforma";
 
     lojaSelecionada =
         null;
@@ -194,15 +307,14 @@ function voltarParaPlataforma() {
             "secaoLoja"
         );
 
+    const secaoMinhaConta =
+        document.getElementById(
+            "secaoMinhaConta"
+        );
+
     document.body.classList.remove(
         "modo-loja-aberta"
     );
-
-    if (secaoPlataforma) {
-
-        secaoPlataforma.style.display =
-            "block";
-    }
 
     if (secaoLojaAberta) {
 
@@ -210,12 +322,59 @@ function voltarParaPlataforma() {
             "none";
     }
 
+    // ================================================
+    // VOLTAR PARA MINHA CONTA
+    // ================================================
+
+    if (origem === "conta") {
+
+        if (secaoPlataforma) {
+
+            secaoPlataforma.style.display =
+                "none";
+        }
+
+        if (secaoMinhaConta) {
+
+            secaoMinhaConta.style.display =
+                "block";
+        }
+
+        window.gcOrigemLoja =
+            "plataforma";
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+        return;
+    }
+
+    // ================================================
+    // VOLTAR PARA PLATAFORMA PÚBLICA
+    // ================================================
+
+    if (secaoPlataforma) {
+
+        secaoPlataforma.style.display =
+            "block";
+    }
+
+    if (secaoMinhaConta) {
+
+        secaoMinhaConta.style.display =
+            "none";
+    }
+
+    window.gcOrigemLoja =
+        "plataforma";
+
     window.scrollTo({
         top: 0,
         behavior: "smooth"
     });
 }
-
 
 // ==================== CARREGAR PRODUTOS ====================
 
@@ -438,6 +597,214 @@ document.addEventListener(
     "DOMContentLoaded",
     async function () {
 
+        // ====================================================
+        // GESTÃO DA LOJA
+        // ====================================================
+
+        const btnAdicionarProduto =
+            document.getElementById(
+                "btnAdicionarProduto"
+            );
+
+        const btnAdicionarServico =
+            document.getElementById(
+                "btnAdicionarServico"
+            );
+
+
+        function abrirFormularioPorTipo(
+            tipo
+        ) {
+
+            const formulario =
+                document.getElementById(
+                    "formularioProduto"
+                );
+
+            const tipoProduto =
+                document.getElementById(
+                    "tipoProduto"
+                );
+
+            if (!formulario) {
+                return;
+            }
+
+
+            if (tipoProduto) {
+
+                tipoProduto.value =
+                    tipo;
+            }
+
+
+            formulario.style.display =
+                "block";
+
+
+            formulario.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+
+
+        if (btnAdicionarProduto) {
+
+            btnAdicionarProduto.addEventListener(
+                "click",
+                function () {
+
+                    abrirFormularioPorTipo(
+                        "produto"
+                    );
+                }
+            );
+        }
+
+
+        if (btnAdicionarServico) {
+
+            btnAdicionarServico.addEventListener(
+                "click",
+                function () {
+
+                    abrirFormularioPorTipo(
+                        "servico"
+                    );
+                }
+            );
+        }
+
+
+        const btnPublicarProduto =
+            document.getElementById(
+                "btnPublicarProduto"
+            );
+
+        if (btnPublicarProduto) {
+
+            btnPublicarProduto.addEventListener(
+                "click",
+                publicarProduto
+            );
+        }
+
+
+        const btnFinalizarPedido =
+            document.getElementById(
+                "btnFinalizarPedido"
+            );
+
+        if (btnFinalizarPedido) {
+
+            btnFinalizarPedido.addEventListener(
+                "click",
+                finalizarPedido
+            );
+        }
+
+
+        // ====================================================
+        // MEU PEDIDO: ABRIR / FECHAR
+        // ====================================================
+
+        const btnPedido =
+            document.getElementById(
+                "btnPedido"
+            );
+
+        const conteudoPedido =
+            document.getElementById(
+                "conteudoPedido"
+            );
+
+        const setaPedido =
+            document.getElementById(
+                "setaPedido"
+            );
+
+        if (
+            btnPedido &&
+            conteudoPedido &&
+            setaPedido
+        ) {
+
+            btnPedido.addEventListener(
+                "click",
+                function () {
+
+                    conteudoPedido.classList.toggle(
+                        "fechado"
+                    );
+
+                    setaPedido.textContent =
+                        conteudoPedido.classList.contains(
+                            "fechado"
+                        )
+                            ? "▼"
+                            : "▲";
+                }
+            );
+        }
+
+
+        // ====================================================
+        // BOTÕES DINÂMICOS: ADICIONAR / + / -
+        // ====================================================
+
+        document.addEventListener(
+            "click",
+            function (evento) {
+
+                const adicionar =
+                    evento.target.closest(
+                        "[data-adicionar-pedido]"
+                    );
+
+                if (adicionar) {
+
+                    adicionarAoPedido(
+                        adicionar.dataset.adicionarPedido
+                    );
+
+                    return;
+                }
+
+
+                const aumentar =
+                    evento.target.closest(
+                        "[data-aumentar-pedido]"
+                    );
+
+                if (aumentar) {
+
+                    alterarQuantidadePedido(
+                        aumentar.dataset.aumentarPedido,
+                        1
+                    );
+
+                    return;
+                }
+
+
+                const diminuir =
+                    evento.target.closest(
+                        "[data-diminuir-pedido]"
+                    );
+
+                if (diminuir) {
+
+                    alterarQuantidadePedido(
+                        diminuir.dataset.diminuirPedido,
+                        -1
+                    );
+                }
+            }
+        );
+
+
+
         const btnVoltar =
             document.getElementById(
                 "btnVoltarPlataforma"
@@ -550,3 +917,808 @@ document.addEventListener(
         carregarLojasVitrine();
     }
 );
+
+
+// ==================== MOSTRAR PRODUTOS ====================
+
+function mostrarProdutos() {
+
+    const lista =
+        document.getElementById(
+            "listaProdutosLoja"
+        );
+
+    if (!lista) {
+        return;
+    }
+
+    lista.innerHTML =
+        "";
+
+
+    if (!produtos.length) {
+
+        lista.innerHTML =
+            "<p>Esta loja ainda não possui produtos ou serviços.</p>";
+
+        return;
+    }
+
+
+    produtos.forEach(
+        function (produto) {
+
+            const bloco =
+                document.createElement(
+                    "div"
+                );
+
+            bloco.className =
+                "produto-loja";
+
+
+            const imagem =
+                produto.imagem
+                    ? `
+                        <img
+                            src="${produto.imagem}"
+                            alt="${escaparHTML(produto.nome)}"
+                            style="
+                                max-width:100%;
+                                width:180px;
+                                border-radius:10px;
+                                margin-bottom:10px;
+                            "
+                        >
+                    `
+                    : "";
+
+
+            bloco.innerHTML = `
+
+                ${imagem}
+
+                <h4>
+                    ${escaparHTML(
+                        produto.nome
+                    )}
+                </h4>
+
+                <p>
+                    ${escaparHTML(
+                        produto.descricao
+                    )}
+                </p>
+
+                <p>
+                    <strong>
+                        ${formatarKz(
+                            produto.preco
+                        )}
+                    </strong>
+                </p>
+
+                <p>
+                    ${
+                        produto.tipo ===
+                        "servico"
+                            ? "🛠️ Serviço"
+                            : "📦 Produto"
+                    }
+                </p>
+
+                <button
+                    type="button"
+                    class="btn"
+                    data-adicionar-pedido="${produto.id}"
+                >
+                    Adicionar ao pedido
+                </button>
+
+            `;
+
+
+            lista.appendChild(
+                bloco
+            );
+        }
+    );
+}
+
+
+// ============================================================
+// ADICIONAR AO PEDIDO
+// ============================================================
+
+function adicionarAoPedido(
+    produtoId
+) {
+
+    const produto =
+        produtos.find(
+            function (item) {
+
+                return Number(
+                    item.id
+                ) === Number(
+                    produtoId
+                );
+            }
+        );
+
+    if (!produto) {
+        return;
+    }
+
+
+    const existente =
+        pedido.find(
+            function (item) {
+
+                return Number(
+                    item.id
+                ) === Number(
+                    produto.id
+                );
+            }
+        );
+
+
+    if (existente) {
+
+        existente.quantidade +=
+            1;
+
+    } else {
+
+        pedido.push({
+            ...produto,
+            quantidade: 1
+        });
+    }
+
+
+    mostrarPedido();
+}
+
+
+// ============================================================
+// ALTERAR QUANTIDADE
+// ============================================================
+
+function alterarQuantidadePedido(
+    produtoId,
+    alteracao
+) {
+
+    const item =
+        pedido.find(
+            function (produto) {
+
+                return Number(
+                    produto.id
+                ) === Number(
+                    produtoId
+                );
+            }
+        );
+
+    if (!item) {
+        return;
+    }
+
+
+    item.quantidade +=
+        alteracao;
+
+
+    if (
+        item.quantidade <= 0
+    ) {
+
+        pedido =
+            pedido.filter(
+                function (produto) {
+
+                    return Number(
+                        produto.id
+                    ) !== Number(
+                        produtoId
+                    );
+                }
+            );
+    }
+
+
+    mostrarPedido();
+}
+
+
+// ============================================================
+// MOSTRAR PEDIDO
+// ============================================================
+
+function calcularTotalPedido() {
+
+    return pedido.reduce(
+        function (
+            total,
+            item
+        ) {
+
+            return (
+                total +
+                (
+                    Number(
+                        item.preco
+                    ) *
+                    Number(
+                        item.quantidade
+                    )
+                )
+            );
+
+        },
+        0
+    );
+}
+
+
+function mostrarPedido() {
+
+    const lista =
+        document.getElementById(
+            "listaPedido"
+        );
+
+    if (!lista) {
+        return;
+    }
+
+
+    if (!pedido.length) {
+
+        lista.innerHTML =
+            "<p>O seu pedido está vazio.</p>";
+
+    } else {
+
+        lista.innerHTML =
+            "";
+
+
+        pedido.forEach(
+            function (item) {
+
+                const linha =
+                    document.createElement(
+                        "div"
+                    );
+
+                linha.className =
+                    "item-pedido";
+
+
+                linha.innerHTML = `
+
+                    <div>
+
+                        <strong>
+                            ${escaparHTML(
+                                item.nome
+                            )}
+                        </strong>
+
+                        <span>
+                            ${formatarKz(
+                                item.preco
+                            )}
+                        </span>
+
+                    </div>
+
+                    <div>
+
+                        <button
+                            type="button"
+                            class="btn"
+                            data-diminuir-pedido="${item.id}"
+                        >
+                            −
+                        </button>
+
+                        <strong>
+                            ${item.quantidade}
+                        </strong>
+
+                        <button
+                            type="button"
+                            class="btn"
+                            data-aumentar-pedido="${item.id}"
+                        >
+                            +
+                        </button>
+
+                    </div>
+
+                `;
+
+
+                lista.appendChild(
+                    linha
+                );
+            }
+        );
+    }
+
+
+    const total =
+        calcularTotalPedido();
+
+
+    let totalElemento =
+        document.getElementById(
+            "totalPedido"
+        );
+
+
+    if (!totalElemento) {
+
+        totalElemento =
+            document.querySelector(
+                "#secaoPedido h3 + div + p"
+            );
+    }
+
+
+    if (totalElemento) {
+
+        totalElemento.textContent =
+            "TOTAL: " +
+            formatarKz(
+                total
+            );
+    }
+}
+
+
+// ============================================================
+// PUBLICAR PRODUTO OU SERVIÇO
+// ============================================================
+
+async function lerImagemComoBase64(
+    ficheiro
+) {
+
+    return new Promise(
+        function (
+            resolve,
+            reject
+        ) {
+
+            const leitor =
+                new FileReader();
+
+
+            leitor.onload =
+                function () {
+
+                    resolve(
+                        leitor.result
+                    );
+                };
+
+
+            leitor.onerror =
+                reject;
+
+
+            leitor.readAsDataURL(
+                ficheiro
+            );
+        }
+    );
+}
+
+
+async function publicarProduto() {
+
+    const mensagem =
+        document.getElementById(
+            "mensagemProduto"
+        );
+
+
+    if (!lojaSelecionada) {
+
+        if (mensagem) {
+
+            mensagem.textContent =
+                "Abra primeiro a sua loja.";
+        }
+
+        return;
+    }
+
+
+    const token =
+        obterTokenUsuario();
+
+
+    if (!token) {
+
+        if (mensagem) {
+
+            mensagem.textContent =
+                "Entre na sua conta.";
+        }
+
+        return;
+    }
+
+
+    const tipo =
+        document.getElementById(
+            "tipoProduto"
+        ).value;
+
+
+    const nome =
+        document.getElementById(
+            "nomeProduto"
+        ).value.trim();
+
+
+    const descricao =
+        document.getElementById(
+            "descricaoProduto"
+        ).value.trim();
+
+
+    const preco =
+        document.getElementById(
+            "precoProduto"
+        ).value;
+
+
+    const inputImagem =
+        document.getElementById(
+            "imagemProduto"
+        );
+
+
+    if (
+        !nome ||
+        !descricao ||
+        preco === ""
+    ) {
+
+        if (mensagem) {
+
+            mensagem.textContent =
+                "Preencha nome, descrição e preço.";
+        }
+
+        return;
+    }
+
+
+    let imagem =
+        null;
+
+
+    if (
+        inputImagem &&
+        inputImagem.files &&
+        inputImagem.files[0]
+    ) {
+
+        try {
+
+            imagem =
+                await lerImagemComoBase64(
+                    inputImagem.files[0]
+                );
+
+        } catch (erro) {
+
+            if (mensagem) {
+
+                mensagem.textContent =
+                    "Não foi possível ler a imagem.";
+            }
+
+            return;
+        }
+    }
+
+
+    const botao =
+        document.getElementById(
+            "btnPublicarProduto"
+        );
+
+
+    if (botao) {
+
+        botao.disabled =
+            true;
+
+        botao.textContent =
+            "A publicar...";
+    }
+
+
+    try {
+
+        const resposta =
+            await fetch(
+
+                "/api/minhas-lojas/" +
+                lojaSelecionada.id +
+                "/produtos",
+
+                {
+
+                    method:
+                        "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json",
+
+                        "Authorization":
+                            "Bearer " +
+                            token
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            tipo,
+                            nome,
+                            descricao,
+                            preco:
+                                Number(
+                                    preco
+                                ),
+
+                            imagem
+                        })
+                }
+            );
+
+
+        const resultado =
+            await resposta.json();
+
+
+        if (!resposta.ok) {
+
+            throw new Error(
+                resultado.erro ||
+                "Não foi possível publicar."
+            );
+        }
+
+
+        if (mensagem) {
+
+            mensagem.textContent =
+                "Publicado com sucesso.";
+        }
+
+
+        document.getElementById(
+            "nomeProduto"
+        ).value =
+            "";
+
+
+        document.getElementById(
+            "descricaoProduto"
+        ).value =
+            "";
+
+
+        document.getElementById(
+            "precoProduto"
+        ).value =
+            "";
+
+
+        if (inputImagem) {
+
+            inputImagem.value =
+                "";
+        }
+
+
+        const formulario =
+            document.getElementById(
+                "formularioProduto"
+            );
+
+
+        if (formulario) {
+
+            formulario.style.display =
+                "none";
+        }
+
+
+        await carregarProdutosDaLoja(
+            lojaSelecionada.id
+        );
+
+    } catch (erro) {
+
+        console.error(
+            erro
+        );
+
+        if (mensagem) {
+
+            mensagem.textContent =
+                erro.message;
+        }
+
+    } finally {
+
+        if (botao) {
+
+            botao.disabled =
+                false;
+
+            botao.textContent =
+                "Publicar";
+        }
+    }
+}
+
+
+// ============================================================
+// FINALIZAR PEDIDO
+// ============================================================
+
+async function finalizarPedido() {
+
+    if (!lojaSelecionada) {
+        return;
+    }
+
+
+    if (!pedido.length) {
+
+        alert(
+            "O seu pedido está vazio."
+        );
+
+        return;
+    }
+
+
+    const cliente_nome =
+        prompt(
+            "Digite o seu nome:"
+        );
+
+
+    if (!cliente_nome) {
+        return;
+    }
+
+
+    const cliente_whatsapp =
+        prompt(
+            "Digite o seu WhatsApp:"
+        );
+
+
+    if (!cliente_whatsapp) {
+        return;
+    }
+
+
+    const itens =
+        pedido.map(
+            function (item) {
+
+                return {
+
+                    produto_id:
+                        item.id,
+
+                    nome:
+                        item.nome,
+
+                    quantidade:
+                        item.quantidade,
+
+                    preco:
+                        Number(
+                            item.preco
+                        )
+                };
+            }
+        );
+
+
+    const total =
+        calcularTotalPedido();
+
+
+    try {
+
+        const resposta =
+            await fetch(
+
+                "/api/lojas/" +
+                lojaSelecionada.id +
+                "/pedidos",
+
+                {
+
+                    method:
+                        "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            cliente_nome,
+
+                            cliente_whatsapp,
+
+                            itens,
+
+                            total
+                        })
+                }
+            );
+
+
+        const resultado =
+            await resposta.json();
+
+
+        if (!resposta.ok) {
+
+            throw new Error(
+                resultado.erro ||
+                "Não foi possível finalizar o pedido."
+            );
+        }
+
+
+        alert(
+            "Pedido enviado com sucesso."
+        );
+
+
+        pedido =
+            [];
+
+
+        mostrarPedido();
+
+
+    } catch (erro) {
+
+        alert(
+            erro.message
+        );
+    }
+}
+
+
+// ============================================================
+// EVENTOS DA LOJA
+// ============================================================
+
