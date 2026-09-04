@@ -599,34 +599,101 @@ function configurarLinkPublicoLoja(loja) {
 
                 try {
 
-                    await navigator.clipboard.writeText(
-                        linkPublico
-                    );
+                    // Primeiro tentar a Clipboard API.
+                    if (
+                        navigator.clipboard &&
+                        window.isSecureContext
+                    ) {
+
+                        await navigator.clipboard.writeText(
+                            linkPublico
+                        );
+
+                    } else {
+
+                        // Método alternativo mais compatível
+                        // com Android e navegadores móveis.
+                        const area =
+                            document.createElement(
+                                "textarea"
+                            );
+
+                        area.value =
+                            linkPublico;
+
+                        area.setAttribute(
+                            "readonly",
+                            ""
+                        );
+
+                        area.style.position =
+                            "fixed";
+
+                        area.style.top =
+                            "0";
+
+                        area.style.left =
+                            "0";
+
+                        area.style.width =
+                            "1px";
+
+                        area.style.height =
+                            "1px";
+
+                        area.style.opacity =
+                            "0";
+
+                        document.body.appendChild(
+                            area
+                        );
+
+                        area.focus();
+
+                        area.select();
+
+                        area.setSelectionRange(
+                            0,
+                            area.value.length
+                        );
+
+                        const copiado =
+                            document.execCommand(
+                                "copy"
+                            );
+
+                        document.body.removeChild(
+                            area
+                        );
+
+                        if (!copiado) {
+
+                            throw new Error(
+                                "Não foi possível copiar o link."
+                            );
+                        }
+                    }
+
 
                     if (mensagem) {
 
                         mensagem.textContent =
-                            "Link copiado com sucesso.";
+                            "✓ Link copiado com sucesso.";
                     }
+
 
                 } catch (erro) {
 
-                    inputLink.select();
-
-                    inputLink.setSelectionRange(
-                        0,
-                        99999
-                    );
-
-                    document.execCommand(
-                        "copy"
-                    );
-
                     if (mensagem) {
 
                         mensagem.textContent =
-                            "Link copiado com sucesso.";
+                            "Não foi possível copiar automaticamente. Tente novamente.";
                     }
+
+                    console.error(
+                        "Erro ao copiar link:",
+                        erro
+                    );
                 }
             };
     }

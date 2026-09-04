@@ -868,6 +868,131 @@ async function carregarMinhasLojas() {
 // EVENTOS
 // ============================================================
 
+// ============================================================
+// COPIAR TEXTO / LINK
+// Compatível com Android e navegadores sem Clipboard API.
+// ============================================================
+
+async function copiarLink(textoParaCopiar) {
+
+    if (!textoParaCopiar) {
+        throw new Error(
+            "Não foi possível encontrar o link da loja."
+        );
+    }
+
+
+    // Primeiro tentar Clipboard API moderna.
+    if (
+        navigator.clipboard &&
+        window.isSecureContext
+    ) {
+
+        try {
+
+            await navigator.clipboard.writeText(
+                textoParaCopiar
+            );
+
+            return true;
+
+        } catch (erroClipboard) {
+
+            console.warn(
+                "Clipboard API falhou. A usar método alternativo.",
+                erroClipboard
+            );
+        }
+    }
+
+
+    // Método alternativo para Android e outros navegadores.
+    const area =
+        document.createElement(
+            "textarea"
+        );
+
+    area.value =
+        textoParaCopiar;
+
+    area.setAttribute(
+        "readonly",
+        ""
+    );
+
+    area.style.position =
+        "fixed";
+
+    area.style.top =
+        "0";
+
+    area.style.left =
+        "0";
+
+    area.style.width =
+        "1px";
+
+    area.style.height =
+        "1px";
+
+    area.style.padding =
+        "0";
+
+    area.style.border =
+        "0";
+
+    area.style.opacity =
+        "0";
+
+    document.body.appendChild(
+        area
+    );
+
+    area.focus();
+
+    area.select();
+
+    area.setSelectionRange(
+        0,
+        area.value.length
+    );
+
+
+    let copiado = false;
+
+    try {
+
+        copiado =
+            document.execCommand(
+                "copy"
+            );
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao copiar link:",
+            erro
+        );
+    }
+
+
+    document.body.removeChild(
+        area
+    );
+
+
+    if (!copiado) {
+
+        throw new Error(
+            "Não foi possível copiar o link. Tente novamente."
+        );
+    }
+
+
+    return true;
+}
+
+
 document.addEventListener(
     "DOMContentLoaded",
     function () {
