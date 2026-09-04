@@ -1,6 +1,7 @@
 let produtos = [];
 let lojasVitrine = [];
 let lojaSelecionada = null;
+let produtoEmEdicao = null;
 
 let pedido = [];
 
@@ -798,6 +799,25 @@ document.addEventListener(
         }
 
 
+        document.addEventListener(
+            "click",
+            function (evento) {
+
+                const botaoEditar =
+                    evento.target.closest(
+                        "[data-editar-produto]"
+                    );
+
+                if (botaoEditar) {
+
+                    editarProduto(
+                        botaoEditar.dataset.editarProduto
+                    );
+                }
+            }
+        );
+
+
         const btnPublicarProduto =
             document.getElementById(
                 "btnPublicarProduto"
@@ -1226,6 +1246,30 @@ function mostrarProdutos() {
                     Adicionar ao pedido
                 </button>
 
+                ${
+                    produtoEmEdicao === null && window.gcOrigemLoja === "conta"
+                        ? `
+                            <div class="acoes-produto-gestao">
+                                <button
+                                    type="button"
+                                    class="btn"
+                                    data-editar-produto="${produto.id}"
+                                >
+                                    ✏️ Editar
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn"
+                                    data-excluir-produto="${produto.id}"
+                                >
+                                    🗑️ Excluir
+                                </button>
+                            </div>
+                        `
+                        : ""
+                }
+
             `;
 
 
@@ -1234,6 +1278,84 @@ function mostrarProdutos() {
             );
         }
     );
+}
+
+
+// ============================================================
+// EDITAR PRODUTO / SERVIÇO
+// ============================================================
+
+function editarProduto(produtoId) {
+
+    const produto =
+        produtos.find(
+            function (item) {
+                return Number(item.id) === Number(produtoId);
+            }
+        );
+
+    if (!produto) {
+        return;
+    }
+
+    produtoEmEdicao = produto;
+
+    document.getElementById("tipoProduto").value =
+        produto.tipo || "produto";
+
+    document.getElementById("nomeProduto").value =
+        produto.nome || "";
+
+    document.getElementById("descricaoProduto").value =
+        produto.descricao || "";
+
+    document.getElementById("precoProduto").value =
+        produto.preco || "";
+
+    const inputImagem =
+        document.getElementById("imagemProduto");
+
+    if (inputImagem) {
+        inputImagem.value = "";
+    }
+
+    const formulario =
+        document.getElementById("formularioProduto");
+
+    if (formulario) {
+        formulario.style.display = "block";
+    }
+
+    const botao =
+        document.getElementById("btnPublicarProduto");
+
+    if (botao) {
+        botao.textContent = "Salvar alterações";
+    }
+
+    const titulo =
+        formulario
+            ? formulario.querySelector("h3")
+            : null;
+
+    if (titulo) {
+        titulo.textContent =
+            "Editar produto ou serviço";
+    }
+
+    const mensagem =
+        document.getElementById(
+            "mensagemPublicarProduto"
+        );
+
+    if (mensagem) {
+        mensagem.textContent = "";
+    }
+
+    formulario?.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
 }
 
 
@@ -1642,13 +1764,24 @@ async function publicarProduto() {
 
     try {
 
-        const resposta =
+        const urlProduto =
+        produtoEmEdicao
+            ? "/api/minhas-lojas/" +
+              lojaSelecionada.id +
+              "/produtos/" +
+              produtoEmEdicao.id
+            : "/api/minhas-lojas/" +
+              lojaSelecionada.id +
+              "/produtos";
+
+    const resposta =
             await fetch(
-                "/api/minhas-lojas/" +
-                lojaSelecionada.id +
-                "/produtos",
+                urlProduto,
                 {
-                    method: "POST",
+                    method:
+                        produtoEmEdicao
+                            ? "PUT"
+                            : "POST",
 
                     headers: {
                         "Content-Type":
@@ -1681,52 +1814,43 @@ async function publicarProduto() {
             );
         }
 
-        // ====================================================
-        // O BACKEND DEVOLVEU O PRODUTO CRIADO.
-        // MOSTRAR IMEDIATAMENTE NA LOJA.
-        // ====================================================
-
         if (resultado.produto) {
 
-            const produtoNovo = {
+            const produtoAtualizado = {
                 ...resultado.produto,
-
-                id:
-                    Number(
-                        resultado.produto.id
-                    ),
-
-                preco:
-                    Number(
-                        resultado.produto.preco
-                    ),
-
-                loja_id:
-                    Number(
-                        resultado.produto.loja_id
-                    )
+                id: Number(resultado.produto.id),
+                preco: Number(resultado.produto.preco),
+                loja_id: Number(resultado.produto.loja_id)
             };
 
-            produtos =
-                produtos.filter(
-                    produto =>
-                        Number(produto.id) !==
-                        Number(produtoNovo.id)
-                );
-
-            produtos.unshift(
-                produtoNovo
+            produtos = produtos.filter(
+                produto =>
+                    Number(produto.id) !==
+                    Number(produtoAtualizado.id)
             );
+
+            produtos.unshift(produtoAtualizado);
 
             mostrarProdutos();
         }
 
-        if (mensagem) {
+        if (produtoEmEdicao) {
 
-            mensagem.textContent =
-                tipo === "servico"
-                    ? "✅ Serviço publicado com sucesso."
-                    : "✅ Produto publicado com sucesso.";
+            if (mensagem) {
+                mensagem.textContent =
+                    "✅ Alterações salvas com sucesso.";
+            }
+
+            produtoEmEdicao = null;
+
+        } else {
+
+            if (mensagem) {
+                mensagem.textContent =
+                    tipo === "servico"
+                        ? "✅ Serviço publicado com sucesso."
+                        : "✅ Produto publicado com sucesso.";
+            }
         }
 
         document.getElementById(
