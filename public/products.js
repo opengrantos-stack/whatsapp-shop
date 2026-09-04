@@ -121,6 +121,17 @@ async function abrirLoja(
             "secaoPlataforma"
         );
 
+    const paginaInicialPublica =
+        document.getElementById(
+            "paginaInicialPublica"
+        );
+
+    if (paginaInicialPublica) {
+
+        paginaInicialPublica.style.display =
+            "none";
+    }
+
     const secaoLojaAberta =
         document.getElementById(
             "secaoLoja"

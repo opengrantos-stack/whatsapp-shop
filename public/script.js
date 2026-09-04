@@ -67,6 +67,106 @@ function limparSessao() {
 
 
 // ============================================================
+// NAVEGAÇÃO DA PÁGINA PÚBLICA
+// ============================================================
+
+function mostrarPaginaInicialPublica() {
+
+    const paginaInicial =
+        document.getElementById(
+            "paginaInicialPublica"
+        );
+
+    const secaoPlataforma =
+        document.getElementById(
+            "secaoPlataforma"
+        );
+
+
+    if (paginaInicial) {
+
+        paginaInicial.style.display =
+            "block";
+    }
+
+
+    if (secaoPlataforma) {
+
+        secaoPlataforma.style.display =
+            "none";
+    }
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+function mostrarExplorarLojas() {
+
+    const paginaInicial =
+        document.getElementById(
+            "paginaInicialPublica"
+        );
+
+    const secaoPlataforma =
+        document.getElementById(
+            "secaoPlataforma"
+        );
+
+
+    if (paginaInicial) {
+
+        paginaInicial.style.display =
+            "none";
+    }
+
+
+    if (secaoPlataforma) {
+
+        secaoPlataforma.style.display =
+            "block";
+    }
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+function esconderPaginaPublica() {
+
+    const paginaInicial =
+        document.getElementById(
+            "paginaInicialPublica"
+        );
+
+    const secaoPlataforma =
+        document.getElementById(
+            "secaoPlataforma"
+        );
+
+
+    if (paginaInicial) {
+
+        paginaInicial.style.display =
+            "none";
+    }
+
+
+    if (secaoPlataforma) {
+
+        secaoPlataforma.style.display =
+            "none";
+    }
+}
+
+
+// ============================================================
 // INTERFACE DA CONTA
 // ============================================================
 
@@ -465,6 +565,8 @@ async function abrirMinhaConta() {
 
     // Fechar outras áreas.
 
+    esconderPaginaPublica();
+
     if (secaoPlataforma) {
 
         secaoPlataforma.style.display =
@@ -573,9 +675,7 @@ function sairDaConta() {
         "secaoLoja"
     ).style.display = "none";
 
-    document.getElementById(
-        "secaoPlataforma"
-    ).style.display = "block";
+    mostrarPaginaInicialPublica();
 
     atualizarInterfaceConta();
 
@@ -996,6 +1096,162 @@ async function copiarLink(textoParaCopiar) {
 document.addEventListener(
     "DOMContentLoaded",
     function () {
+
+        // ====================================================
+        // BOTÕES DA PÁGINA PRINCIPAL
+        // ====================================================
+
+        const btnHeroExplorar =
+            document.getElementById(
+                "btnHeroExplorar"
+            );
+
+
+        if (btnHeroExplorar) {
+
+            btnHeroExplorar.addEventListener(
+                "click",
+                function () {
+
+                    mostrarExplorarLojas();
+
+                }
+            );
+        }
+
+
+        if (btnHeroCriarConta) {
+
+            btnHeroCriarConta.addEventListener(
+                "click",
+                function () {
+
+                    const secaoCadastro =
+                        document.getElementById(
+                            "secaoCadastro"
+                        );
+
+                    if (!secaoCadastro) {
+                        return;
+                    }
+
+
+                    secaoCadastro.style.display =
+                        "block";
+
+
+                    secaoCadastro.scrollIntoView(
+                        {
+                            behavior:
+                                "smooth",
+                            block:
+                                "start"
+                        }
+                    );
+
+
+                    const campoNome =
+                        document.getElementById(
+                            "nomeCadastro"
+                        );
+
+                    if (campoNome) {
+
+                        setTimeout(
+                            function () {
+
+                                campoNome.focus();
+
+                            },
+                            400
+                        );
+                    }
+                }
+            );
+        }
+
+
+
+        // ====================================================
+        // BOTÕES DA ÁREA EXPLORAR LOJAS
+        // ====================================================
+
+        const btnExplorarLogin =
+            document.getElementById(
+                "btnExplorarLogin"
+            );
+
+        const btnExplorarCadastro =
+            document.getElementById(
+                "btnExplorarCadastro"
+            );
+
+
+        if (btnExplorarLogin) {
+
+            btnExplorarLogin.addEventListener(
+                "click",
+                function () {
+
+                    esconderPaginaPublica();
+
+                    const secaoLogin =
+                        document.getElementById(
+                            "secaoLogin"
+                        );
+
+                    if (secaoLogin) {
+
+                        secaoLogin.style.display =
+                            "block";
+
+                        secaoLogin.scrollIntoView(
+                            {
+                                behavior:
+                                    "smooth",
+
+                                block:
+                                    "start"
+                            }
+                        );
+                    }
+                }
+            );
+        }
+
+
+        if (btnExplorarCadastro) {
+
+            btnExplorarCadastro.addEventListener(
+                "click",
+                function () {
+
+                    esconderPaginaPublica();
+
+                    const secaoCadastro =
+                        document.getElementById(
+                            "secaoCadastro"
+                        );
+
+                    if (secaoCadastro) {
+
+                        secaoCadastro.style.display =
+                            "block";
+
+                        secaoCadastro.scrollIntoView(
+                            {
+                                behavior:
+                                    "smooth",
+
+                                block:
+                                    "start"
+                            }
+                        );
+                    }
+                }
+            );
+        }
+
 
         const btnAbrirLogin =
             document.getElementById(

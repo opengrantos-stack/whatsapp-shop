@@ -51,25 +51,10 @@
 
             <!-- UTILIZADOR NÃO AUTENTICADO -->
 
-            <div id="acoesVisitante">
-
-                <button
-                    id="btnAbrirLogin"
-                    class="btn"
-                    type="button"
-                >
-                    Entrar
-                </button>
-
-                <button
-                    id="btnAbrirCadastro"
-                    class="btn btn-publicar"
-                    type="button"
-                >
-                    Criar conta
-                </button>
-
-            </div>
+            <div
+                id="acoesVisitante"
+                style="display:none;"
+            ></div>
 
 
             <!-- UTILIZADOR AUTENTICADO -->
@@ -95,6 +80,214 @@
 
 
     <main class="container">
+
+
+        <div id="paginaInicialPublica">
+
+        <!-- =========================
+             APRESENTAÇÃO PRINCIPAL
+        ========================== -->
+
+        <section
+            id="heroPrincipal"
+            class="hero-principal"
+        >
+
+            <div class="hero-conteudo">
+
+                <span class="hero-etiqueta">
+                    🇦🇴 COMÉRCIO DIGITAL EM ANGOLA
+                </span>
+
+                <h2>
+                    Compre, venda e encontre
+                    serviços num só lugar.
+                </h2>
+
+                <p class="hero-descricao">
+                    A GC-AngGlobal conecta clientes,
+                    vendedores e prestadores de serviços
+                    através de lojas digitais simples,
+                    modernas e acessíveis.
+                </p>
+
+
+                <div class="hero-acoes">
+
+                    <button
+                        id="btnHeroExplorar"
+                        class="btn btn-publicar"
+                        type="button"
+                    >
+                        🛍️ EXPLORAR LOJAS
+                    </button>
+
+
+                    <button
+                        id="btnHeroCriarConta"
+                        class="btn"
+                        type="button"
+                    >
+                        🚀 Criar minha conta
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="hero-destaques">
+
+                <div class="hero-cartao">
+
+                    <span>🏪</span>
+
+                    <strong>
+                        Crie a sua loja
+                    </strong>
+
+                    <small>
+                        Venda produtos e serviços.
+                    </small>
+
+                </div>
+
+
+                <div class="hero-cartao">
+
+                    <span>📱</span>
+
+                    <strong>
+                        Venda pelo WhatsApp
+                    </strong>
+
+                    <small>
+                        Receba pedidos diretamente.
+                    </small>
+
+                </div>
+
+
+                <div class="hero-cartao">
+
+                    <span>🌍</span>
+
+                    <strong>
+                        Alcance mais clientes
+                    </strong>
+
+                    <small>
+                        Partilhe o link da sua loja.
+                    </small>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             COMO FUNCIONA
+        ========================== -->
+
+        <section
+            id="comoFunciona"
+            class="como-funciona"
+        >
+
+            <div class="secao-titulo">
+
+                <span>
+                    COMO FUNCIONA
+                </span>
+
+                <h2>
+                    Simples para quem vende.
+                    Simples para quem compra.
+                </h2>
+
+            </div>
+
+
+            <div class="passos-grid">
+
+                <div class="passo">
+
+                    <div class="passo-numero">
+                        1
+                    </div>
+
+                    <h3>
+                        Crie uma conta
+                    </h3>
+
+                    <p>
+                        Registe-se gratuitamente
+                        e entre na plataforma.
+                    </p>
+
+                </div>
+
+
+                <div class="passo">
+
+                    <div class="passo-numero">
+                        2
+                    </div>
+
+                    <h3>
+                        Crie a sua loja
+                    </h3>
+
+                    <p>
+                        Adicione o nome,
+                        descrição e WhatsApp.
+                    </p>
+
+                </div>
+
+
+                <div class="passo">
+
+                    <div class="passo-numero">
+                        3
+                    </div>
+
+                    <h3>
+                        Publique e venda
+                    </h3>
+
+                    <p>
+                        Adicione produtos,
+                        serviços e receba pedidos.
+                    </p>
+
+                </div>
+
+
+                <div class="passo">
+
+                    <div class="passo-numero">
+                        4
+                    </div>
+
+                    <h3>
+                        Receba no WhatsApp
+                    </h3>
+
+                    <p>
+                        O cliente envia
+                        o pedido diretamente para si.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        </div>
 
 
         <!-- =========================
@@ -318,30 +511,32 @@
             id="secaoPlataforma"
         >
 
-            <div class="apresentacao">
+            <div
+                id="acoesExplorarLojas"
+                class="acoes-explorar-lojas"
+            >
 
-                <h2>
-                    Bem-vindo à GC-AngGlobal
-                </h2>
+                <button
+                    id="btnExplorarLogin"
+                    class="btn"
+                    type="button"
+                >
+                    Entrar
+                </button>
 
-                <p>
-                    Descubra lojas, produtos
-                    e serviços disponíveis
-                    na plataforma.
-                </p>
+                <button
+                    id="btnExplorarCadastro"
+                    class="btn btn-publicar"
+                    type="button"
+                >
+                    Criar conta
+                </button>
 
             </div>
-
-
-            <!-- LOJAS CADASTRADAS -->
 
             <section
                 id="secaoLojasDisponiveis"
             >
-
-                <h2>
-                    🏪 Lojas cadastradas
-                </h2>
 
                 <p
                     id="mensagemLojas"
