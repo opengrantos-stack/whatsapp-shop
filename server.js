@@ -101,8 +101,14 @@ async function prepararBanco() {
                 telefone TEXT DEFAULT '',
                 senha TEXT NOT NULL,
                 ativo BOOLEAN DEFAULT TRUE,
+                role TEXT DEFAULT 'user',
                 criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        `);
+
+        await pool.query(`
+            ALTER TABLE gc_angglobal_sellers
+            ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user'
         `);
 
 
@@ -265,23 +271,39 @@ app.post('/api/admin/login', (req, res) => {
 });
 
 
-function verificarAdmin(req, res, next) {
+async function verificarAdmin(req, res, next) {
 
-    const autorizacao =
-        req.headers.authorization;
+    try {
 
-    if (
-        autorizacao !==
-        'Bearer gc-angglobal-admin'
-    ) {
-        return res.status(401).json({
+        const usuario =
+            await obterUsuarioPorToken(req);
+
+        if (!usuario || usuario.role !== 'admin') {
+            return res.status(403).json({
+                erro:
+                    'Acesso reservado ao administrador.'
+            });
+        }
+
+        req.usuario =
+            usuario;
+
+        next();
+
+    } catch (erro) {
+
+        console.error(
+            'Erro ao validar administrador:',
+            erro.message
+        );
+
+        res.status(500).json({
             erro:
-                'É necessário entrar como administrador.'
+                'Não foi possível validar o acesso administrativo.'
         });
     }
-
-    next();
 }
+
 
 
 // ============================================================
@@ -391,6 +413,7 @@ app.post('/api/contas/login', async (req, res) => {
                     email,
                     telefone,
                     ativo,
+                    role,
                     senha
                 FROM gc_angglobal_sellers
                 WHERE email = $1
@@ -488,7 +511,8 @@ async function obterUsuarioPorToken(req) {
                 nome,
                 email,
                 telefone,
-                ativo
+                ativo,
+                role
             FROM gc_angglobal_sellers
             WHERE id = $1
             LIMIT 1
@@ -1365,6 +1389,9 @@ app.get(
                     SELECT
                         lojas.id,
                         lojas.nome,
+                        lojas.descricao,
+                        lojas.logo,
+                        lojas.whatsapp,
                         lojas.slug,
                         lojas.ativo,
                         lojas.criado_em,
@@ -1447,6 +1474,63 @@ app.patch(
             res.status(500).json({
                 erro:
                     'Não foi possível atualizar a loja.'
+            });
+        }
+    }
+);
+
+
+// ============================================================
+// ADMIN — GERIR PRODUTOS / SERVIÇOS
+// ============================================================
+
+app.delete(
+    '/api/admin/lojas/:lojaId/produtos/:produtoId',
+    verificarAdmin,
+    async (req, res) => {
+
+        try {
+
+            const resultado =
+                await pool.query(
+                    `
+                    DELETE FROM gc_angglobal_products
+                    WHERE id = $1
+                      AND loja_id = $2
+                    RETURNING id, nome
+                    `,
+                    [
+                        req.params.produtoId,
+                        req.params.lojaId
+                    ]
+                );
+
+            if (resultado.rowCount === 0) {
+
+                return res.status(404).json({
+                    erro:
+                        'Produto ou serviço não encontrado nesta loja.'
+                });
+            }
+
+            res.json({
+                sucesso: true,
+                mensagem:
+                    'Produto/serviço eliminado.',
+                produto:
+                    resultado.rows[0]
+            });
+
+        } catch (erro) {
+
+            console.error(
+                'Erro ao eliminar produto como admin:',
+                erro.message
+            );
+
+            res.status(500).json({
+                erro:
+                    'Não foi possível eliminar o produto/serviço.'
             });
         }
     }

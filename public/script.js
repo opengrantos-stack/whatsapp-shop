@@ -67,6 +67,301 @@ function limparSessao() {
 
 
 // ============================================================
+// ADMINISTRAÇÃO DA PLATAFORMA
+// ============================================================
+
+async function abrirAdministracao() {
+
+    const token =
+        obterTokenUsuario();
+
+    const usuario =
+        obterUsuarioLocal();
+
+    if (
+        !token ||
+        !usuario ||
+        usuario.role !== "admin"
+    ) {
+        alert(
+            "Acesso reservado ao administrador."
+        );
+        return;
+    }
+
+    const secaoMinhaConta =
+        document.getElementById(
+            "secaoMinhaConta"
+        );
+
+    const secaoPlataforma =
+        document.getElementById(
+            "secaoPlataforma"
+        );
+
+    const secaoLoja =
+        document.getElementById(
+            "secaoLoja"
+        );
+
+    const secaoLogin =
+        document.getElementById(
+            "secaoLogin"
+        );
+
+    const secaoCadastro =
+        document.getElementById(
+            "secaoCadastro"
+        );
+
+    const secaoAdmin =
+        document.getElementById(
+            "secaoAdmin"
+        );
+
+    esconderPaginaPublica();
+
+    if (secaoMinhaConta) {
+        secaoMinhaConta.style.display =
+            "none";
+    }
+
+    if (secaoPlataforma) {
+        secaoPlataforma.style.display =
+            "none";
+    }
+
+    if (secaoLoja) {
+        secaoLoja.style.display =
+            "none";
+    }
+
+    if (secaoLogin) {
+        secaoLogin.style.display =
+            "none";
+    }
+
+    if (secaoCadastro) {
+        secaoCadastro.style.display =
+            "none";
+    }
+
+    if (secaoAdmin) {
+        secaoAdmin.style.display =
+            "block";
+    }
+
+    document.body.classList.remove(
+        "modo-loja-aberta"
+    );
+
+    await carregarLojasAdmin();
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+async function carregarLojasAdmin() {
+
+    const token =
+        obterTokenUsuario();
+
+    const lista =
+        document.getElementById(
+            "adminListaLojas"
+        );
+
+    const resumo =
+        document.getElementById(
+            "adminResumo"
+        );
+
+    if (!lista) {
+        return;
+    }
+
+    lista.innerHTML =
+        "A carregar lojas...";
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/admin/lojas",
+                {
+                    headers: {
+                        Authorization:
+                            "Bearer " + token
+                    }
+                }
+            );
+
+        const resultado =
+            await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                resultado.erro ||
+                "Não foi possível carregar as lojas."
+            );
+        }
+
+        const lojas =
+            resultado.lojas || [];
+
+        if (resumo) {
+            resumo.textContent =
+                "Total de lojas: " +
+                lojas.length;
+        }
+
+        if (lojas.length === 0) {
+            lista.innerHTML =
+                "<p>Nenhuma loja cadastrada.</p>";
+            return;
+        }
+
+        lista.innerHTML =
+            lojas.map(
+                loja => `
+                    <div class="card-admin-loja">
+                        <h3>${loja.nome}</h3>
+
+                        <p>
+                            Dono: ${loja.dono_nome || "—"}
+                        </p>
+
+                        <p>
+                            Email: ${loja.dono_email || "—"}
+                        </p>
+
+                        <p>
+                            Status: ${
+                                loja.ativo
+                                    ? "🟢 Ativa"
+                                    : "🔴 Desativada"
+                            }
+                        </p>
+
+                        <button
+                            type="button"
+                            class="btn"
+                            data-admin-abrir-loja="${loja.id}"
+                            data-admin-loja-slug="${loja.slug}"
+                        >
+                            🏪 Abrir loja
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn"
+                            data-admin-loja-id="${loja.id}"
+                            data-admin-loja-status="${
+                                loja.ativo
+                                    ? "false"
+                                    : "true"
+                            }"
+                        >
+                            ${
+                                loja.ativo
+                                    ? "🚫 Desativar"
+                                    : "✅ Ativar"
+                            }
+                        </button>
+                    </div>
+                `
+            ).join("");
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao carregar lojas admin:",
+            erro
+        );
+
+        lista.innerHTML =
+            "<p>❌ " +
+            erro.message +
+            "</p>";
+    }
+}
+
+
+async function alterarStatusLojaAdmin(
+    lojaId,
+    ativo
+) {
+
+    const token =
+        obterTokenUsuario();
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/admin/lojas/" +
+                lojaId +
+                "/status",
+                {
+                    method: "PATCH",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                        Authorization:
+                            "Bearer " + token
+                    },
+
+                    body: JSON.stringify({
+                        ativo:
+                            ativo === "true" ||
+                            ativo === true
+                    })
+                }
+            );
+
+        const resultado =
+            await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                resultado.erro ||
+                "Não foi possível alterar o estado da loja."
+            );
+        }
+
+        await carregarLojasAdmin();
+
+    } catch (erro) {
+
+        alert(
+            "❌ " +
+            erro.message
+        );
+    }
+}
+
+
+function sairDaAdministracao() {
+
+    const secaoAdmin =
+        document.getElementById(
+            "secaoAdmin"
+        );
+
+    if (secaoAdmin) {
+        secaoAdmin.style.display =
+            "none";
+    }
+
+    abrirMinhaConta();
+}
+
+
+// ============================================================
 // NAVEGAÇÃO DA PÁGINA PÚBLICA
 // ============================================================
 
@@ -190,6 +485,11 @@ function atualizarInterfaceConta() {
             "secaoMinhaConta"
         );
 
+    const areaAdministracao =
+        document.getElementById(
+            "areaAdministracao"
+        );
+
     const usuario =
         obterUsuarioLocal();
 
@@ -225,7 +525,19 @@ function atualizarInterfaceConta() {
                 usuario.email;
         }
 
+        if (areaAdministracao) {
+            areaAdministracao.style.display =
+                usuario.role === "admin"
+                    ? "block"
+                    : "none";
+        }
+
     } else {
+
+        if (areaAdministracao) {
+            areaAdministracao.style.display =
+                "none";
+        }
 
         if (visitante) {
             visitante.style.display =
@@ -1502,6 +1814,113 @@ document.addEventListener(
                 }
 
 
+                const abrirAdminLoja =
+                    evento.target.closest(
+                        "[data-admin-abrir-loja]"
+                    );
+
+                if (abrirAdminLoja) {
+
+                    const id =
+                        abrirAdminLoja.dataset.adminAbrirLoja;
+
+                    const token =
+                        obterTokenUsuario();
+
+                    if (!token) {
+                        alert(
+                            "Sessão administrativa não encontrada."
+                        );
+                        return;
+                    }
+
+                    try {
+
+                        const resposta =
+                            await fetch(
+                                "/api/minhas-lojas",
+                                {
+                                    headers: {
+                                        "Authorization":
+                                            "Bearer " + token
+                                    }
+                                }
+                            );
+
+                        const resultado =
+                            await resposta.json();
+
+                        if (!resposta.ok) {
+                            throw new Error(
+                                resultado.erro ||
+                                "Não foi possível carregar a loja."
+                            );
+                        }
+
+                        const lojas =
+                            resultado.lojas || [];
+
+                        let loja =
+                            lojas.find(
+                                item =>
+                                    String(item.id) ===
+                                    String(id)
+                            );
+
+                        if (!loja) {
+
+                            const slug =
+                                abrirAdminLoja.dataset.adminLojaSlug;
+
+                            loja = {
+                                id: id,
+                                slug: slug
+                            };
+                        }
+
+                        await abrirLoja(
+                            loja,
+                            "admin"
+                        );
+
+                    } catch (erro) {
+
+                        console.error(
+                            "Erro ao abrir loja como admin:",
+                            erro
+                        );
+
+                        alert(
+                            "❌ " + erro.message
+                        );
+                    }
+
+                    return;
+                }
+
+
+                const alterarStatus =
+                    evento.target.closest(
+                        "[data-admin-loja-id]"
+                    );
+
+                if (alterarStatus) {
+
+                    const lojaId =
+                        alterarStatus.dataset.adminLojaId;
+
+                    const novoStatus =
+                        alterarStatus.dataset.adminLojaStatus;
+
+                    await alterarStatusLojaAdmin(
+                        lojaId,
+                        novoStatus
+                    );
+
+                    return;
+                }
+
+
                 const copiar =
                     evento.target.closest(
                         "[data-copiar-link]"
@@ -1529,6 +1948,45 @@ document.addEventListener(
                 }
             }
         );
+
+
+        const btnAbrirAdministracao =
+            document.getElementById(
+                "btnAbrirAdministracao"
+            );
+
+        if (btnAbrirAdministracao) {
+            btnAbrirAdministracao.addEventListener(
+                "click",
+                abrirAdministracao
+            );
+        }
+
+
+        const btnAdminCarregarLojas =
+            document.getElementById(
+                "btnAdminCarregarLojas"
+            );
+
+        if (btnAdminCarregarLojas) {
+            btnAdminCarregarLojas.addEventListener(
+                "click",
+                carregarLojasAdmin
+            );
+        }
+
+
+        const btnAdminSair =
+            document.getElementById(
+                "btnAdminSair"
+            );
+
+        if (btnAdminSair) {
+            btnAdminSair.addEventListener(
+                "click",
+                sairDaAdministracao
+            );
+        }
 
 
         atualizarInterfaceConta();

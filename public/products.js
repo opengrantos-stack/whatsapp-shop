@@ -143,6 +143,11 @@ async function abrirLoja(
             "secaoMinhaConta"
         );
 
+    const secaoAdmin =
+        document.getElementById(
+            "secaoAdmin"
+        );
+
     const secaoGestaoLoja =
         document.getElementById(
             "secaoGestaoLoja"
@@ -171,6 +176,12 @@ async function abrirLoja(
     if (secaoMinhaConta) {
 
         secaoMinhaConta.style.display =
+            "none";
+    }
+
+    if (secaoAdmin) {
+
+        secaoAdmin.style.display =
             "none";
     }
 
@@ -1261,7 +1272,11 @@ function mostrarProdutos() {
                 </button>
 
                 ${
-                    produtoEmEdicao === null && window.gcOrigemLoja === "conta"
+                    produtoEmEdicao === null &&
+                    (
+                        window.gcOrigemLoja === "conta" ||
+                        window.gcOrigemLoja === "admin"
+                    )
                         ? `
                             <div class="acoes-produto-gestao">
                                 <button
@@ -1408,6 +1423,9 @@ async function excluirProduto(produtoId) {
     const token =
         obterTokenUsuario();
 
+    const usuario =
+        obterUsuarioLocal();
+
     if (!token) {
         alert("Entre na sua conta para eliminar.");
         return;
@@ -1415,12 +1433,21 @@ async function excluirProduto(produtoId) {
 
     try {
 
+        const rotaEliminar =
+            usuario &&
+            usuario.role === "admin"
+                ? "/api/admin/lojas/" +
+                  lojaSelecionada.id +
+                  "/produtos/" +
+                  produto.id
+                : "/api/minhas-lojas/" +
+                  lojaSelecionada.id +
+                  "/produtos/" +
+                  produto.id;
+
         const resposta =
             await fetch(
-                "/api/minhas-lojas/" +
-                lojaSelecionada.id +
-                "/produtos/" +
-                produto.id,
+                rotaEliminar,
                 {
                     method: "DELETE",
 
