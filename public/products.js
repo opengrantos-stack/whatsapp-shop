@@ -813,6 +813,20 @@ document.addEventListener(
                     editarProduto(
                         botaoEditar.dataset.editarProduto
                     );
+
+                    return;
+                }
+
+                const botaoExcluir =
+                    evento.target.closest(
+                        "[data-excluir-produto]"
+                    );
+
+                if (botaoExcluir) {
+
+                    excluirProduto(
+                        botaoExcluir.dataset.excluirProduto
+                    );
                 }
             }
         );
@@ -1356,6 +1370,97 @@ function editarProduto(produtoId) {
         behavior: "smooth",
         block: "center"
     });
+}
+
+
+// ============================================================
+// EXCLUIR PRODUTO / SERVIÇO
+// ============================================================
+
+async function excluirProduto(produtoId) {
+
+    const produto =
+        produtos.find(
+            function (item) {
+                return Number(item.id) === Number(produtoId);
+            }
+        );
+
+    if (!produto) {
+        return;
+    }
+
+    const confirmar =
+        confirm(
+            "Tem certeza que deseja eliminar \"" +
+            produto.nome +
+            "?"
+        );
+
+    if (!confirmar) {
+        return;
+    }
+
+    if (!lojaSelecionada) {
+        return;
+    }
+
+    const token =
+        obterTokenUsuario();
+
+    if (!token) {
+        alert("Entre na sua conta para eliminar.");
+        return;
+    }
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/minhas-lojas/" +
+                lojaSelecionada.id +
+                "/produtos/" +
+                produto.id,
+                {
+                    method: "DELETE",
+
+                    headers: {
+                        "Authorization":
+                            "Bearer " +
+                            token
+                    }
+                }
+            );
+
+        const resultado =
+            await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                resultado.erro ||
+                "Não foi possível eliminar."
+            );
+        }
+
+        produtos =
+            produtos.filter(
+                function (item) {
+                    return Number(item.id) !==
+                        Number(produto.id);
+                }
+            );
+
+        mostrarProdutos();
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao eliminar produto:",
+            erro
+        );
+
+        alert(erro.message);
+    }
 }
 
 
