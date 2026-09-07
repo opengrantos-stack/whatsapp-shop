@@ -2807,3 +2807,73 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     );
 });
+
+/* Recuperação de palavra-passe */
+document.addEventListener("DOMContentLoaded", function () {
+    const btnEsqueciSenha = document.getElementById("btnEsqueciSenha");
+    const areaRecuperarSenha = document.getElementById("areaRecuperarSenha");
+    const btnSolicitarRecuperacao = document.getElementById("btnSolicitarRecuperacao");
+    const emailRecuperacao = document.getElementById("emailRecuperacao");
+    const mensagemRecuperacao = document.getElementById("mensagemRecuperacao");
+
+    if (btnEsqueciSenha && areaRecuperarSenha) {
+        btnEsqueciSenha.addEventListener("click", function () {
+            const aberta = areaRecuperarSenha.style.display !== "none";
+            areaRecuperarSenha.style.display = aberta ? "none" : "block";
+            btnEsqueciSenha.textContent = aberta
+                ? "Esqueci a palavra-passe"
+                : "🔒 Fechar recuperação";
+        });
+    }
+
+    if (btnSolicitarRecuperacao) {
+        btnSolicitarRecuperacao.addEventListener("click", async function () {
+            const email = emailRecuperacao ? emailRecuperacao.value.trim() : "";
+
+            if (!email) {
+                mensagemRecuperacao.textContent = "Digite o seu email.";
+                return;
+            }
+
+            if (!email.includes("@")) {
+                mensagemRecuperacao.textContent = "Digite um email válido.";
+                return;
+            }
+
+            btnSolicitarRecuperacao.disabled = true;
+            btnSolicitarRecuperacao.textContent = "⏳ A enviar...";
+            mensagemRecuperacao.textContent = "";
+
+            try {
+                const resposta = await fetch("/api/contas/esqueci-senha", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const resultado = await resposta.json();
+
+                if (!resposta.ok) {
+                    throw new Error(resultado.mensagem || "Não foi possível solicitar a recuperação.");
+                }
+
+                mensagemRecuperacao.textContent =
+                    "✅ Se o email estiver registado, receberá as instruções de recuperação.";
+                
+                if (emailRecuperacao) {
+                    emailRecuperacao.value = "";
+                }
+            } catch (erro) {
+                console.error("Erro na recuperação:", erro);
+                mensagemRecuperacao.textContent =
+                    erro.message || "Ocorreu um erro. Tente novamente.";
+            } finally {
+                btnSolicitarRecuperacao.disabled = false;
+                btnSolicitarRecuperacao.textContent =
+                    "📧 Enviar link de recuperação";
+            }
+        });
+    }
+});
