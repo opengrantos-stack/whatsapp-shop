@@ -1506,17 +1506,18 @@ async function carregarMinhasLojas() {
                             <input
                                 type="file"
                                 accept="image/png,image/jpeg,image/webp"
+                                id="input-capa-${loja.id}"
                                 style="display:none;"
                                 data-input-capa="${loja.id}"
                             >
 
-                            <button
+                            <label
                                 class="btn"
-                                type="button"
-                                data-alterar-capa="${loja.id}"
+                                for="input-capa-${loja.id}"
+                                style="display:inline-block;cursor:pointer;"
                             >
                                 📷 Alterar capa
-                            </button>
+                            </label>
 
                             <h3>
                                 ${loja.nome}
