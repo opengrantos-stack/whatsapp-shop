@@ -2980,8 +2980,19 @@ document.addEventListener("click", async function (evento) {
             area = document.createElement("div");
             area.id = "adminRelatorios";
             area.style.marginTop = "20px";
-            document.getElementById("adminListaLojas").after(area);
+            document.getElementById("adminResumo").after(area);
         }
+
+        const adminResumo = document.getElementById("adminResumo");
+        const adminIdentidade = document.getElementById("adminIdentidade");
+        const adminListaLojas = document.getElementById("adminListaLojas");
+        const adminAcoes = document.querySelector(".admin-acoes");
+
+        if (adminResumo) adminResumo.style.display = "none";
+
+        if (adminIdentidade) adminIdentidade.style.display = "none";
+        if (adminListaLojas) adminListaLojas.style.display = "none";
+        if (adminAcoes) adminAcoes.style.display = "none";
 
         if (!resultado.relatorios.length) {
             area.innerHTML = "<p>📭 Nenhum relatório recebido.</p>";
@@ -2989,6 +3000,10 @@ document.addEventListener("click", async function (evento) {
         }
 
         area.innerHTML = `
+            <button type="button" class="btn" id="btnVoltarAdminLojas">
+                ← Voltar à administração
+            </button>
+
             <h3>📩 Relatórios recebidos</h3>
             ${resultado.relatorios.map(r => `
                 <div style="border:1px solid #ddd;border-radius:12px;padding:16px;margin:12px 0;background:#fff;">
@@ -3214,5 +3229,25 @@ document.addEventListener("change", async function (evento) {
 
         alert("❌ " + erro.message);
     }
+
+});
+
+document.addEventListener("click", function (evento) {
+
+    if (!evento.target.closest("#btnVoltarAdminLojas")) {
+        return;
+    }
+
+    const area = document.getElementById("adminRelatorios");
+    const adminResumo = document.getElementById("adminResumo");
+    const adminIdentidade = document.getElementById("adminIdentidade");
+    const adminListaLojas = document.getElementById("adminListaLojas");
+    const adminAcoes = document.querySelector(".admin-acoes");
+
+    if (area) area.style.display = "none";
+    if (adminResumo) adminResumo.style.display = "";
+    if (adminIdentidade) adminIdentidade.style.display = "";
+    if (adminListaLojas) adminListaLojas.style.display = "";
+    if (adminAcoes) adminAcoes.style.display = "";
 
 });
