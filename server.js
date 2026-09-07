@@ -737,7 +737,7 @@ app.post('/api/contas/esqueci-senha', async (req, res) => {
             'https://gc-angglobal.geracaocalueio.ao/redefinir-senha?token='
             + encodeURIComponent(token);
 
-        await resend.emails.send({
+        const envio = await resend.emails.send({
             from: process.env.RESEND_FROM_EMAIL,
             to: email,
             subject: 'Recuperação da sua palavra-passe - GC-AngGlobal',
@@ -757,6 +757,13 @@ app.post('/api/contas/esqueci-senha', async (req, res) => {
                 </div>
             `
         });
+
+        if (envio.error) {
+            console.error('ERRO RESEND:', JSON.stringify(envio.error));
+            throw new Error(envio.error.message || 'O Resend recusou o envio.');
+        }
+
+        console.log('RESEND OK:', envio.data?.id || 'sem ID');
 
         return res.json({
             sucesso: true,
