@@ -1261,3 +1261,111 @@ body.modo-loja-aberta #secaoPlataforma {
     }
 }
 
+
+/* =====================================================
+   BOTÃO ADICIONAR AO PEDIDO
+   ===================================================== */
+
+[data-adicionar-pedido] {
+    width: 100%;
+    min-height: 48px;
+    margin-top: 12px;
+    padding: 12px 16px;
+
+    background: var(--cor-principal);
+    color: #ffffff;
+
+    border: none;
+    border-radius: 12px;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        opacity 0.15s ease;
+}
+
+[data-adicionar-pedido]:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
+}
+
+[data-adicionar-pedido]:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+
+/* CORREÇÃO VISUAL — ADICIONAR AO PEDIDO */
+[data-adicionar-pedido] {
+    background: #168f86 !important;
+    color: #ffffff !important;
+    border: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+[data-adicionar-pedido]:hover {
+    background: #11776f !important;
+}
+
+
+/* BOTÃO ADICIONAR AO PEDIDO — COMPACTO */
+[data-adicionar-pedido] {
+    min-height: 40px !important;
+    margin-top: 10px !important;
+    padding: 9px 12px !important;
+    border-radius: 9px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+}
+
+
+/* ADICIONAR AO PEDIDO — COMPACTO */
+[data-adicionar-pedido] {
+    width: auto !important;
+    min-width: 175px !important;
+    max-width: 220px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    margin: 10px auto 0 !important;
+    padding: 8px 16px !important;
+    border-radius: 9px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    background: #168f86 !important;
+    color: #ffffff !important;
+    border: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+}
+
+
+/* ADICIONAR AO PEDIDO — TAMANHO PEQUENO */
+[data-adicionar-pedido] {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    margin: 8px auto 0 !important;
+    padding: 6px 10px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+}
+
+
+/* POSIÇÃO DO BOTÃO — LOGO ABAIXO DO PRODUTO */
+[data-adicionar-pedido] {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+
