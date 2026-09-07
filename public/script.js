@@ -2922,3 +2922,23 @@ document.addEventListener("change", async function (evento) {
     leitor.readAsDataURL(arquivo);
 });
 
+
+document.addEventListener("click", function (evento) {
+
+    if (evento.target.closest("#btnGaleriaProduto")) {
+        const input = document.getElementById("imagemProduto");
+        if (input) {
+            input.removeAttribute("capture");
+            input.click();
+        }
+    }
+
+    if (evento.target.closest("#btnCameraProduto")) {
+        const input = document.getElementById("imagemProduto");
+        if (input) {
+            input.setAttribute("capture", "environment");
+            input.click();
+        }
+    }
+
+});

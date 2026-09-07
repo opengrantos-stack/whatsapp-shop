@@ -857,11 +857,32 @@
                         placeholder="Preço em Kz"
                     >
 
-                    <input
-                        id="imagemProduto" capture="environment"
-                        type="file"
-                        accept="image/*"
-                    >
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <button type="button" class="btn" id="btnGaleriaProduto">
+        🖼️ Galeria
+    </button>
+
+    <button type="button" class="btn" id="btnCameraProduto">
+        📷 Câmara
+    </button>
+
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <button type="button" class="btn" id="btnGaleriaProduto">
+        🖼️ Galeria
+    </button>
+
+    <button type="button" class="btn" id="btnCameraProduto">
+        📷 Câmara
+    </button>
+
+    <input
+        id="imagemProduto"
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        style="display:none;"
+    >
+</div>
+</div>
 
                     <button
                         id="btnPublicarProduto"
