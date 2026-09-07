@@ -2600,3 +2600,114 @@ document.addEventListener("DOMContentLoaded", function () {
 document.addEventListener("DOMContentLoaded", function () {
     sincronizarConta();
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const secao =
+        document.getElementById("secaoRedefinirSenha");
+
+    const botao =
+        document.getElementById("btnRedefinirSenha");
+
+    const mensagem =
+        document.getElementById("mensagemRedefinirSenha");
+
+    if (!secao || !botao) {
+        return;
+    }
+
+    const parametros =
+        new URLSearchParams(window.location.search);
+
+    const token =
+        parametros.get("token");
+
+    if (!token) {
+        return;
+    }
+
+    secao.style.display = "block";
+
+    const senha =
+        document.getElementById("novaSenhaRecuperacao");
+
+    const confirmar =
+        document.getElementById("confirmarSenhaRecuperacao");
+
+    botao.addEventListener("click", async function () {
+
+        mensagem.textContent = "";
+
+        if (!senha.value || !confirmar.value) {
+            mensagem.textContent =
+                "Informe e confirme a nova palavra-passe.";
+            return;
+        }
+
+        if (senha.value.length < 6) {
+            mensagem.textContent =
+                "A palavra-passe deve ter pelo menos 6 caracteres.";
+            return;
+        }
+
+        if (senha.value !== confirmar.value) {
+            mensagem.textContent =
+                "As palavras-passe não coincidem.";
+            return;
+        }
+
+        botao.disabled = true;
+        botao.textContent = "⏳ A redefinir...";
+
+        try {
+
+            const resposta =
+                await fetch(
+                    "/api/contas/redefinir-senha",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body: JSON.stringify({
+                            token: token,
+                            novaSenha: senha.value
+                        })
+                    }
+                );
+
+            const resultado =
+                await resposta.json();
+
+            if (!resposta.ok) {
+                throw new Error(
+                    resultado.erro ||
+                    "Não foi possível redefinir a palavra-passe."
+                );
+            }
+
+            mensagem.textContent =
+                "✅ Palavra-passe redefinida com sucesso. Já pode entrar na sua conta.";
+
+            senha.value = "";
+            confirmar.value = "";
+
+            botao.textContent =
+                "✅ Palavra-passe redefinida";
+
+            setTimeout(function () {
+                window.location.href = "/";
+            }, 2000);
+
+        } catch (erro) {
+
+            mensagem.textContent =
+                "❌ " + erro.message;
+
+            botao.disabled = false;
+            botao.textContent =
+                "🔑 Redefinir palavra-passe";
+        }
+    });
+});

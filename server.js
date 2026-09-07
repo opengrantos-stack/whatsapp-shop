@@ -4,6 +4,7 @@ const express = require('express');
 const path = require('path');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
+const { Resend } = require('resend');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -16,6 +17,8 @@ const pool = new Pool({
         ? { rejectUnauthorized: false }
         : false
 });
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 
 // ============================================================
@@ -115,6 +118,18 @@ async function prepararBanco() {
         await pool.query(`
             ALTER TABLE gc_angglobal_sellers
             ADD COLUMN IF NOT EXISTS foto_perfil TEXT DEFAULT ''
+        `);
+
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS gc_angglobal_password_resets (
+                id BIGSERIAL PRIMARY KEY,
+                usuario_id BIGINT NOT NULL,
+                token_hash TEXT UNIQUE NOT NULL,
+                expira_em TIMESTAMP NOT NULL,
+                usado BOOLEAN DEFAULT FALSE,
+                criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
         `);
 
 
@@ -650,6 +665,223 @@ app.post('/api/contas/login', async (req, res) => {
     }
 });
 
+
+
+// ------------------------------------------------------------
+// RECUPERAÇÃO DE PALAVRA-PASSE
+// ------------------------------------------------------------
+
+app.post('/api/contas/esqueci-senha', async (req, res) => {
+
+    try {
+
+        const email =
+            String(req.body.email || '')
+                .trim()
+                .toLowerCase();
+
+        if (!email) {
+            return res.status(400).json({
+                erro: 'Informe o seu email.'
+            });
+        }
+
+        const resultado =
+            await pool.query(`
+                SELECT id
+                FROM gc_angglobal_sellers
+                WHERE email = $1
+                  AND ativo = TRUE
+                LIMIT 1
+            `, [email]);
+
+        // Resposta igual para email existente ou inexistente.
+        if (resultado.rowCount === 0) {
+            return res.json({
+                sucesso: true,
+                mensagem:
+                    'Se o email estiver registado, receberá instruções para recuperar a conta.'
+            });
+        }
+
+        const usuarioId =
+            resultado.rows[0].id;
+
+        const token =
+            require('crypto').randomBytes(32).toString('hex');
+
+        const tokenHash =
+            require('crypto')
+                .createHash('sha256')
+                .update(token)
+                .digest('hex');
+
+        await pool.query(`
+            UPDATE gc_angglobal_password_resets
+            SET usado = TRUE
+            WHERE usuario_id = $1
+              AND usado = FALSE
+        `, [usuarioId]);
+
+        await pool.query(`
+            INSERT INTO gc_angglobal_password_resets
+                (usuario_id, token_hash, expira_em)
+            VALUES
+                ($1, $2, CURRENT_TIMESTAMP + INTERVAL '30 minutes')
+        `, [
+            usuarioId,
+            tokenHash
+        ]);
+
+        const linkRecuperacao =
+            'https://gc-angglobal.geracaocalueio.ao/redefinir-senha?token='
+            + encodeURIComponent(token);
+
+        await resend.emails.send({
+            from: process.env.RESEND_FROM_EMAIL,
+            to: email,
+            subject: 'Recuperação da sua palavra-passe - GC-AngGlobal',
+            html: `
+                <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;">
+                    <h2>Recuperação de palavra-passe</h2>
+                    <p>Recebemos um pedido para recuperar a sua palavra-passe da GC-AngGlobal.</p>
+                    <p>Use o botão abaixo para criar uma nova palavra-passe:</p>
+                    <p>
+                        <a href="${linkRecuperacao}"
+                           style="display:inline-block;padding:12px 20px;background:#168f86;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;">
+                            Redefinir palavra-passe
+                        </a>
+                    </p>
+                    <p>Este link é válido durante 30 minutos e só pode ser utilizado uma vez.</p>
+                    <p>Se não solicitou esta recuperação, pode ignorar este e-mail.</p>
+                </div>
+            `
+        });
+
+        return res.json({
+            sucesso: true,
+            mensagem:
+                'Se o email estiver registado, receberá instruções para recuperar a conta.'
+        });
+
+    } catch (erro) {
+
+        console.error(
+            'Erro na recuperação de palavra-passe:',
+            erro.message
+        );
+
+        res.status(500).json({
+            erro:
+                'Não foi possível processar o pedido.'
+        });
+    }
+});
+
+
+// ------------------------------------------------------------
+// REDEFINIR PALAVRA-PASSE COM TOKEN
+// ------------------------------------------------------------
+
+app.post('/api/contas/redefinir-senha', async (req, res) => {
+
+    try {
+
+        const token =
+            String(req.body.token || '').trim();
+
+        const novaSenha =
+            String(req.body.novaSenha || '');
+
+        if (!token || !novaSenha) {
+            return res.status(400).json({
+                erro:
+                    'Token e nova palavra-passe são obrigatórios.'
+            });
+        }
+
+        if (novaSenha.length < 6) {
+            return res.status(400).json({
+                erro:
+                    'A nova palavra-passe deve ter pelo menos 6 caracteres.'
+            });
+        }
+
+        const crypto = require('crypto');
+
+        const tokenHash =
+            crypto
+                .createHash('sha256')
+                .update(token)
+                .digest('hex');
+
+        const resultado =
+            await pool.query(`
+                SELECT id, usuario_id
+                FROM gc_angglobal_password_resets
+                WHERE token_hash = $1
+                  AND usado = FALSE
+                  AND expira_em > CURRENT_TIMESTAMP
+                LIMIT 1
+            `, [tokenHash]);
+
+        if (resultado.rowCount === 0) {
+            return res.status(400).json({
+                erro:
+                    'O link de recuperação é inválido, expirou ou já foi utilizado.'
+            });
+        }
+
+        const reset =
+            resultado.rows[0];
+
+        const senhaHash =
+            await bcrypt.hash(
+                novaSenha,
+                12
+            );
+
+        await pool.query(`
+            UPDATE gc_angglobal_sellers
+            SET senha = $1
+            WHERE id = $2
+        `, [
+            senhaHash,
+            reset.usuario_id
+        ]);
+
+        await pool.query(`
+            UPDATE gc_angglobal_password_resets
+            SET usado = TRUE
+            WHERE id = $1
+        `, [reset.id]);
+
+        await pool.query(`
+            UPDATE gc_angglobal_password_resets
+            SET usado = TRUE
+            WHERE usuario_id = $1
+              AND usado = FALSE
+        `, [reset.usuario_id]);
+
+        return res.json({
+            sucesso: true,
+            mensagem:
+                'Palavra-passe redefinida com sucesso.'
+        });
+
+    } catch (erro) {
+
+        console.error(
+            'Erro ao redefinir palavra-passe:',
+            erro.message
+        );
+
+        res.status(500).json({
+            erro:
+                'Não foi possível redefinir a palavra-passe.'
+        });
+    }
+});
 
 
 // ------------------------------------------------------------
