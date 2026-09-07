@@ -2202,3 +2202,325 @@ document.addEventListener(
 
     }
 );
+
+/* ============================================================
+   ALTERAR PALAVRA-PASSE
+   ============================================================ */
+
+async function alterarPalavraPasse() {
+
+    const senhaAtual =
+        document.getElementById("senhaAtual").value;
+
+    const novaSenha =
+        document.getElementById("novaSenha").value;
+
+    const confirmarNovaSenha =
+        document.getElementById("confirmarNovaSenha").value;
+
+    const mensagem =
+        document.getElementById("mensagemAlterarSenha");
+
+    const botao =
+        document.getElementById("btnAlterarSenha");
+
+    if (!senhaAtual || !novaSenha || !confirmarNovaSenha) {
+        mensagem.textContent =
+            "Preencha todos os campos.";
+        return;
+    }
+
+    if (novaSenha.length < 6) {
+        mensagem.textContent =
+            "A nova palavra-passe deve ter pelo menos 6 caracteres.";
+        return;
+    }
+
+    if (novaSenha !== confirmarNovaSenha) {
+        mensagem.textContent =
+            "As novas palavras-passe não coincidem.";
+        return;
+    }
+
+    const token =
+        localStorage.getItem("gc_angglobal_token");
+
+    if (!token) {
+        mensagem.textContent =
+            "Sessão expirada. Entre novamente.";
+        return;
+    }
+
+    botao.disabled = true;
+    botao.textContent = "A alterar...";
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/contas/alterar-senha",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                        "Authorization":
+                            "Bearer " + token
+                    },
+                    body: JSON.stringify({
+                        senhaAtual,
+                        novaSenha
+                    })
+                }
+            );
+
+        const resultado =
+            await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                resultado.erro ||
+                "Não foi possível alterar a palavra-passe."
+            );
+        }
+
+        mensagem.textContent =
+            "Palavra-passe alterada com sucesso.";
+
+        document.getElementById("senhaAtual").value = "";
+        document.getElementById("novaSenha").value = "";
+        document.getElementById("confirmarNovaSenha").value = "";
+
+    } catch (erro) {
+
+        mensagem.textContent =
+            erro.message;
+
+    } finally {
+
+        botao.disabled = false;
+        botao.textContent =
+            "🔑 Alterar palavra-passe";
+    }
+}
+
+
+/* Ligar o botão à função */
+document.addEventListener("DOMContentLoaded", function () {
+
+    const btnSeguranca =
+        document.getElementById("btnAbrirSeguranca");
+
+    const areaSeguranca =
+        document.getElementById("areaAlterarSenha");
+
+    if (btnSeguranca && areaSeguranca) {
+        btnSeguranca.addEventListener("click", function () {
+
+            const aberto =
+                areaSeguranca.style.display !== "none";
+
+            areaSeguranca.style.display =
+                aberto ? "none" : "block";
+
+            btnSeguranca.textContent =
+                aberto
+                    ? "🔐 Segurança da conta"
+                    : "🔒 Fechar segurança da conta";
+        });
+    }
+
+    const botao =
+        document.getElementById("btnAlterarSenha");
+
+    if (botao) {
+        botao.addEventListener(
+            "click",
+            alterarPalavraPasse
+        );
+    }
+
+});
+
+/* ============================================================
+   FOTO DE PERFIL — CARREGAR E GUARDAR
+   ============================================================ */
+
+async function carregarFotoPerfil(arquivo) {
+
+    if (!arquivo) return;
+
+    if (!arquivo.type.match(/^image\/(png|jpeg|webp)$/)) {
+        alert("Selecione uma imagem PNG, JPG ou WEBP.");
+        return;
+    }
+
+    if (arquivo.size > 5 * 1024 * 1024) {
+        alert("A imagem deve ter no máximo 5 MB.");
+        return;
+    }
+
+    const leitor = new FileReader();
+
+    leitor.onload = async function () {
+
+        const foto = leitor.result;
+
+        const imagem =
+            document.getElementById("fotoPerfilConta");
+
+        if (imagem) {
+            imagem.src = foto;
+        }
+
+        const token =
+            localStorage.getItem("gc_angglobal_token");
+
+        if (!token) {
+            alert("Sessão expirada. Entre novamente.");
+            return;
+        }
+
+        try {
+
+            const resposta =
+                await fetch(
+                    "/api/contas/foto-perfil",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                            "Authorization":
+                                "Bearer " + token
+                        },
+                        body: JSON.stringify({
+                            foto
+                        })
+                    }
+                );
+
+            const resultado =
+                await resposta.json();
+
+            if (!resposta.ok) {
+                throw new Error(
+                    resultado.erro ||
+                    "Não foi possível guardar a foto."
+                );
+            }
+
+        } catch (erro) {
+
+            alert(erro.message);
+
+        }
+    };
+
+    leitor.readAsDataURL(arquivo);
+}
+
+
+/* Ativar seleção da foto */
+document.addEventListener("DOMContentLoaded", function () {
+
+    const input =
+        document.getElementById("inputFotoPerfil");
+
+    if (input) {
+        input.addEventListener(
+            "change",
+            function () {
+                carregarFotoPerfil(
+                    this.files[0]
+                );
+            }
+        );
+    }
+
+});
+
+/* ============================================================
+   FOTO DE PERFIL — VISUALIZAR / ALTERAR
+   ============================================================ */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const btnVisualizar =
+        document.getElementById(
+            "btnVisualizarFotoPerfil"
+        );
+
+    const btnAlterar =
+        document.getElementById(
+            "btnAlterarFotoPerfil"
+        );
+
+    const input =
+        document.getElementById(
+            "inputFotoPerfil"
+        );
+
+    const imagem =
+        document.getElementById(
+            "fotoPerfilConta"
+        );
+
+    /* Abrir galeria somente pelo botão Alterar */
+    if (btnAlterar && input) {
+        btnAlterar.addEventListener(
+            "click",
+            function () {
+                input.click();
+            }
+        );
+    }
+
+    /* Tocar na foto apenas visualiza */
+    if (btnVisualizar && imagem) {
+        btnVisualizar.addEventListener(
+            "click",
+            function () {
+
+                if (!imagem.src) {
+                    return;
+                }
+
+                const janela =
+                    window.open(
+                        "",
+                        "_blank"
+                    );
+
+                if (janela) {
+                    janela.document.write(`
+                        <html>
+                        <head>
+                            <title>Foto de perfil</title>
+                            <style>
+                                body {
+                                    margin:0;
+                                    background:#111;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    min-height:100vh;
+                                }
+                                img {
+                                    max-width:95vw;
+                                    max-height:95vh;
+                                    object-fit:contain;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <img src="${imagem.src}">
+                        </body>
+                        </html>
+                    `);
+                }
+            }
+        );
+    }
+
+});

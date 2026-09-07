@@ -1369,3 +1369,77 @@ body.modo-loja-aberta #secaoPlataforma {
     margin-right: auto !important;
 }
 
+
+/* =====================================================
+   FOTO DE PERFIL
+   ===================================================== */
+
+.perfil-conta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.foto-perfil-container {
+    position: relative;
+    width: 82px;
+    height: 82px;
+    min-width: 82px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e6f2ef;
+    border: 3px solid #168f86;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.foto-perfil-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+
+.foto-perfil-container span {
+    font-size: 25px;
+}
+
+.foto-perfil-container img[src]:not([src=""]) {
+    display: block;
+}
+
+
+/* FOTO DE PERFIL — VISUAL PROFISSIONAL */
+
+.foto-perfil-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+}
+
+.foto-perfil-container {
+    padding: 0;
+    border: 3px solid #168f86;
+    background: #e6f2ef;
+    border-radius: 50%;
+    overflow: hidden;
+    width: 82px;
+    height: 82px;
+    cursor: pointer;
+}
+
+.foto-perfil-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#btnAlterarFotoPerfil {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    border-radius: 7px !important;
+}
+

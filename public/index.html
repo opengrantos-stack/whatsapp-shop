@@ -422,13 +422,50 @@
 
                 <div class="conta-topo">
 
-                    <div>
+                    <div class="perfil-conta">
 
-                        <h2 id="nomeUtilizadorConta">
-                            Minha conta
-                        </h2>
+                        <div class="foto-perfil-area">
 
-                        <p id="emailUtilizadorConta"></p>
+                            <button
+                                id="btnVisualizarFotoPerfil"
+                                class="foto-perfil-container"
+                                type="button"
+                                title="Ver foto de perfil"
+                            >
+                                <img
+                                    id="fotoPerfilConta"
+                                    src=""
+                                    alt="Foto de perfil"
+                                >
+                                <span>👤</span>
+                            </button>
+
+                            <button
+                                id="btnAlterarFotoPerfil"
+                                class="btn"
+                                type="button"
+                            >
+                                📷 Alterar foto
+                            </button>
+
+                        </div>
+
+                        <input
+                            id="inputFotoPerfil"
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            style="display:none;"
+                        >
+
+                        <div>
+
+                            <h2 id="nomeUtilizadorConta">
+                                Minha conta
+                            </h2>
+
+                            <p id="emailUtilizadorConta"></p>
+
+                        </div>
 
                     </div>
 
@@ -457,6 +494,55 @@
                     >
                         🛡️ Administração da plataforma
                     </button>
+
+                </div>
+
+
+                <!-- SEGURANÇA DA CONTA -->
+
+                <button
+                    id="btnAbrirSeguranca"
+                    class="btn"
+                    type="button"
+                >
+                    🔐 Segurança da conta
+                </button>
+
+                <div
+                    id="areaAlterarSenha"
+                    class="formulario"
+                    style="display:none;"
+                >
+
+                    <h3>🔐 Segurança da conta</h3>
+
+                    <input
+                        id="senhaAtual"
+                        type="password"
+                        placeholder="Palavra-passe atual"
+                    >
+
+                    <input
+                        id="novaSenha"
+                        type="password"
+                        placeholder="Nova palavra-passe"
+                    >
+
+                    <input
+                        id="confirmarNovaSenha"
+                        type="password"
+                        placeholder="Confirmar nova palavra-passe"
+                    >
+
+                    <button
+                        id="btnAlterarSenha"
+                        class="btn btn-publicar"
+                        type="button"
+                    >
+                        🔑 Alterar palavra-passe
+                    </button>
+
+                    <p id="mensagemAlterarSenha"></p>
 
                 </div>
 

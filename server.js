@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -109,6 +110,11 @@ async function prepararBanco() {
         await pool.query(`
             ALTER TABLE gc_angglobal_sellers
             ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user'
+        `);
+
+        await pool.query(`
+            ALTER TABLE gc_angglobal_sellers
+            ADD COLUMN IF NOT EXISTS foto_perfil TEXT DEFAULT ''
         `);
 
 
@@ -467,6 +473,9 @@ app.post('/api/contas/cadastro', async (req, res) => {
             });
         }
 
+        const senhaHash =
+            await bcrypt.hash(senha, 12);
+
         const resultado =
             await pool.query(`
                 INSERT INTO gc_angglobal_sellers
@@ -482,7 +491,7 @@ app.post('/api/contas/cadastro', async (req, res) => {
             `, [
                 nome.trim(),
                 email.trim().toLowerCase(),
-                senha
+                senhaHash
             ]);
 
         const usuario =
@@ -547,6 +556,7 @@ app.post('/api/contas/login', async (req, res) => {
                     telefone,
                     ativo,
                     role,
+                    foto_perfil,
                     senha
                 FROM gc_angglobal_sellers
                 WHERE email = $1
@@ -572,7 +582,40 @@ app.post('/api/contas/login', async (req, res) => {
             });
         }
 
-        if (senha !== usuario.senha) {
+        let senhaValida = false;
+
+        // Contas novas: senha armazenada como hash bcrypt.
+        if (
+            typeof usuario.senha === 'string' &&
+            usuario.senha.startsWith('$2')
+        ) {
+            senhaValida =
+                await bcrypt.compare(
+                    senha,
+                    usuario.senha
+                );
+        } else {
+            // Compatibilidade com contas antigas.
+            senhaValida =
+                senha === usuario.senha;
+
+            // Migra automaticamente a senha antiga para hash.
+            if (senhaValida) {
+                const novoHash =
+                    await bcrypt.hash(senha, 12);
+
+                await pool.query(`
+                    UPDATE gc_angglobal_sellers
+                    SET senha = $1
+                    WHERE id = $2
+                `, [
+                    novoHash,
+                    usuario.id
+                ]);
+            }
+        }
+
+        if (!senhaValida) {
             return res.status(401).json({
                 erro:
                     'Email ou senha incorretos.'
@@ -603,6 +646,214 @@ app.post('/api/contas/login', async (req, res) => {
         res.status(500).json({
             erro:
                 'Não foi possível efetuar o login.'
+        });
+    }
+});
+
+
+
+// ------------------------------------------------------------
+// ALTERAR PALAVRA-PASSE
+// ------------------------------------------------------------
+
+app.post('/api/contas/alterar-senha', async (req, res) => {
+
+    try {
+
+        const autorizacao =
+            req.headers.authorization;
+
+        if (!autorizacao) {
+            return res.status(401).json({
+                erro: 'Sessão não autorizada.'
+            });
+        }
+
+        const prefixo =
+            'Bearer gc-angglobal-user-';
+
+        if (!autorizacao.startsWith(prefixo)) {
+            return res.status(401).json({
+                erro: 'Sessão não autorizada.'
+            });
+        }
+
+        const id =
+            autorizacao.substring(prefixo.length);
+
+        if (!/^\d+$/.test(id)) {
+            return res.status(401).json({
+                erro: 'Sessão inválida.'
+            });
+        }
+
+        const {
+            senhaAtual,
+            novaSenha
+        } = req.body;
+
+        if (!senhaAtual || !novaSenha) {
+            return res.status(400).json({
+                erro:
+                    'Informe a palavra-passe atual e a nova palavra-passe.'
+            });
+        }
+
+        if (novaSenha.length < 6) {
+            return res.status(400).json({
+                erro:
+                    'A nova palavra-passe deve ter pelo menos 6 caracteres.'
+            });
+        }
+
+        const resultado =
+            await pool.query(`
+                SELECT id, senha
+                FROM gc_angglobal_sellers
+                WHERE id = $1
+                LIMIT 1
+            `, [id]);
+
+        if (resultado.rowCount === 0) {
+            return res.status(404).json({
+                erro: 'Utilizador não encontrado.'
+            });
+        }
+
+        const usuario =
+            resultado.rows[0];
+
+        let senhaAtualValida = false;
+
+        if (
+            typeof usuario.senha === 'string' &&
+            usuario.senha.startsWith('$2')
+        ) {
+            senhaAtualValida =
+                await bcrypt.compare(
+                    senhaAtual,
+                    usuario.senha
+                );
+        } else {
+            senhaAtualValida =
+                senhaAtual === usuario.senha;
+        }
+
+        if (!senhaAtualValida) {
+            return res.status(401).json({
+                erro:
+                    'A palavra-passe atual está incorreta.'
+            });
+        }
+
+        const novoHash =
+            await bcrypt.hash(novaSenha, 12);
+
+        await pool.query(`
+            UPDATE gc_angglobal_sellers
+            SET senha = $1
+            WHERE id = $2
+        `, [
+            novoHash,
+            id
+        ]);
+
+        res.json({
+            sucesso: true,
+            mensagem:
+                'Palavra-passe alterada com sucesso.'
+        });
+
+    } catch (erro) {
+
+        console.error(
+            'Erro ao alterar palavra-passe:',
+            erro.message
+        );
+
+        res.status(500).json({
+            erro:
+                'Não foi possível alterar a palavra-passe.'
+        });
+    }
+});
+
+
+
+// ------------------------------------------------------------
+// FOTO DE PERFIL
+// ------------------------------------------------------------
+
+app.post('/api/contas/foto-perfil', async (req, res) => {
+
+    try {
+
+        const autorizacao =
+            req.headers.authorization;
+
+        const prefixo =
+            'Bearer gc-angglobal-user-';
+
+        if (!autorizacao ||
+            !autorizacao.startsWith(prefixo)) {
+            return res.status(401).json({
+                erro: 'Sessão não autorizada.'
+            });
+        }
+
+        const id =
+            autorizacao.substring(prefixo.length);
+
+        if (!/^\d+$/.test(id)) {
+            return res.status(401).json({
+                erro: 'Sessão inválida.'
+            });
+        }
+
+        const { foto } = req.body;
+
+        if (!foto || typeof foto !== 'string') {
+            return res.status(400).json({
+                erro: 'Selecione uma imagem.'
+            });
+        }
+
+        if (!/^data:image\/(png|jpeg|jpg|webp);base64,/.test(foto)) {
+            return res.status(400).json({
+                erro: 'Formato de imagem não suportado.'
+            });
+        }
+
+        if (foto.length > 7 * 1024 * 1024) {
+            return res.status(400).json({
+                erro: 'A imagem é demasiado grande.'
+            });
+        }
+
+        await pool.query(`
+            UPDATE gc_angglobal_sellers
+            SET foto_perfil = $1
+            WHERE id = $2
+        `, [
+            foto,
+            id
+        ]);
+
+        res.json({
+            sucesso: true,
+            foto
+        });
+
+    } catch (erro) {
+
+        console.error(
+            'Erro ao guardar foto de perfil:',
+            erro.message
+        );
+
+        res.status(500).json({
+            erro:
+                'Não foi possível guardar a foto de perfil.'
         });
     }
 });
