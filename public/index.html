@@ -511,6 +511,98 @@
                 </div>
 
 
+                <div style="margin:20px 0;">
+                    <button
+                        id="btnAbrirRelatorio"
+                        class="btn"
+                        type="button"
+                    >
+                        🆘 Reportar problema / sugerir melhoria
+                    </button>
+                </div>
+
+
+                <div
+                    id="formularioRelatorio"
+                    style="display:none;margin:20px 0;padding:18px;border:1px solid #ddd;border-radius:12px;background:#fff;"
+                >
+                    <h3>🆘 Reportar problema ou sugerir melhoria</h3>
+
+                    <select id="tipoRelatorio" class="input">
+                        <option value="">Selecione o tipo</option>
+                        <option value="Problema">🐛 Problema</option>
+                        <option value="Falha">⚠️ Falha</option>
+                        <option value="Melhoria">💡 Sugestão de melhoria</option>
+                        <option value="Segurança">🔒 Segurança</option>
+                        <option value="Outro">❓ Outro</option>
+                    </select>
+
+                    <input
+                        id="assuntoRelatorio"
+                        class="input"
+                        type="text"
+                        placeholder="Assunto"
+                    >
+
+                    <textarea
+                        id="descricaoRelatorio"
+                        class="input"
+                        rows="5"
+                        placeholder="Descreva o problema ou a sugestão..."
+                    ></textarea>
+
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+
+                        <button
+                            type="button"
+                            class="btn"
+                            id="btnGaleriaRelatorio"
+                        >
+                            🖼️ Galeria
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn"
+                            id="btnCameraRelatorio"
+                        >
+                            📷 Câmara
+                        </button>
+
+                    </div>
+
+                    <input
+                        id="imagemRelatorio"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        style="display:none;"
+                    >
+
+                    <div style="display:flex;gap:8px;margin-top:15px;">
+
+                        <button
+                            type="button"
+                            class="btn"
+                            id="btnEnviarRelatorio"
+                        >
+                            📤 Enviar relatório
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn"
+                            id="btnFecharRelatorio"
+                        >
+                            Fechar
+                        </button>
+
+                    </div>
+
+                    <p id="mensagemRelatorio"></p>
+
+                </div>
+
+
                 <!-- ADMINISTRAÇÃO DA PLATAFORMA -->
 
                 <div
@@ -666,6 +758,10 @@
                 <div class="admin-acoes">
                     <button id="btnAdminCarregarLojas" class="btn" type="button">
                         🏪 Gerir lojas
+                    </button>
+
+                    <button id="btnAdminRelatorios" class="btn" type="button">
+                        📩 Relatórios
                     </button>
 
                     <button id="btnAdminSair" class="btn" type="button">

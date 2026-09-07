@@ -2942,3 +2942,277 @@ document.addEventListener("click", function (evento) {
     }
 
 });
+
+document.addEventListener("click", async function (evento) {
+
+    const botao = evento.target.closest("#btnAdminRelatorios");
+
+    if (!botao) {
+        return;
+    }
+
+    const token = obterTokenUsuario();
+
+    if (!token) {
+        alert("Sessão expirada. Entre novamente.");
+        return;
+    }
+
+    try {
+        const resposta = await fetch("/api/admin/relatorios", {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const resultado = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                resultado.erro ||
+                "Não foi possível carregar os relatórios."
+            );
+        }
+
+        let area = document.getElementById("adminRelatorios");
+
+        if (!area) {
+            area = document.createElement("div");
+            area.id = "adminRelatorios";
+            area.style.marginTop = "20px";
+            document.getElementById("adminListaLojas").after(area);
+        }
+
+        if (!resultado.relatorios.length) {
+            area.innerHTML = "<p>📭 Nenhum relatório recebido.</p>";
+            return;
+        }
+
+        area.innerHTML = `
+            <h3>📩 Relatórios recebidos</h3>
+            ${resultado.relatorios.map(r => `
+                <div style="border:1px solid #ddd;border-radius:12px;padding:16px;margin:12px 0;background:#fff;">
+                    <strong>${r.tipo}</strong>
+                    <h4>${r.assunto}</h4>
+                    <p>${r.descricao}</p>
+                    <small>
+                        👤 ${r.nome || "Utilizador"} — ${r.email || ""}
+                    </small>
+                    <br>
+                    <small>📅 ${new Date(r.criado_em).toLocaleString("pt-PT")}</small>
+                    <div style="margin-top:10px;">
+                        <label>
+                            Estado:
+                            <select
+                                class="select-estado-relatorio"
+                                data-relatorio-id="${r.id}"
+                            >
+                                <option value="novo" ${r.estado === "novo" ? "selected" : ""}>🔴 Novo</option>
+                                <option value="em_analise" ${r.estado === "em_analise" ? "selected" : ""}>🟡 Em análise</option>
+                                <option value="aguardando_utilizador" ${r.estado === "aguardando_utilizador" ? "selected" : ""}>🔵 Aguardando utilizador</option>
+                                <option value="resolvido" ${r.estado === "resolvido" ? "selected" : ""}>🟢 Resolvido</option>
+                                <option value="fechado" ${r.estado === "fechado" ? "selected" : ""}>⚫ Fechado</option>
+                            </select>
+                        </label>
+                    </div>
+                    ${
+                        r.imagem
+                            ? `<img src="${r.imagem}" style="max-width:100%;max-height:300px;border-radius:8px;margin-top:10px;">`
+                            : ""
+                    }
+                </div>
+            `).join("")}
+        `;
+
+    } catch (erro) {
+        console.error("Erro ao carregar relatórios:", erro);
+        alert("❌ " + erro.message);
+    }
+
+});
+
+document.addEventListener("click", function (evento) {
+
+    if (evento.target.closest("#btnAbrirRelatorio")) {
+        const formulario = document.getElementById("formularioRelatorio");
+        if (formulario) {
+            formulario.style.display = "block";
+        }
+    }
+
+    if (evento.target.closest("#btnFecharRelatorio")) {
+        const formulario = document.getElementById("formularioRelatorio");
+        if (formulario) {
+            formulario.style.display = "none";
+        }
+    }
+
+    if (evento.target.closest("#btnGaleriaRelatorio")) {
+        const input = document.getElementById("imagemRelatorio");
+        if (input) {
+            input.removeAttribute("capture");
+            input.click();
+        }
+    }
+
+    if (evento.target.closest("#btnCameraRelatorio")) {
+        const input = document.getElementById("imagemRelatorio");
+        if (input) {
+            input.setAttribute("capture", "environment");
+            input.click();
+        }
+    }
+
+});
+
+document.addEventListener("click", async function (evento) {
+
+    const botao = evento.target.closest("#btnEnviarRelatorio");
+
+    if (!botao) {
+        return;
+    }
+
+    const token = obterTokenUsuario();
+
+    const tipo = document.getElementById("tipoRelatorio");
+    const assunto = document.getElementById("assuntoRelatorio");
+    const descricao = document.getElementById("descricaoRelatorio");
+    const inputImagem = document.getElementById("imagemRelatorio");
+    const mensagem = document.getElementById("mensagemRelatorio");
+
+    if (!token) {
+        alert("Sessão expirada. Entre novamente.");
+        return;
+    }
+
+    if (!tipo.value || !assunto.value.trim() || !descricao.value.trim()) {
+        alert("Preencha o tipo, assunto e descrição.");
+        return;
+    }
+
+    let imagem = "";
+
+    if (inputImagem.files && inputImagem.files[0]) {
+        const arquivo = inputImagem.files[0];
+
+        if (!arquivo.type.match(/^image\/(png|jpeg|webp)$/)) {
+            alert("Escolha uma imagem PNG, JPG ou WEBP.");
+            return;
+        }
+
+        if (arquivo.size > 5 * 1024 * 1024) {
+            alert("A imagem deve ter no máximo 5 MB.");
+            return;
+        }
+
+        imagem = await new Promise((resolve, reject) => {
+            const leitor = new FileReader();
+
+            leitor.onload = () => resolve(leitor.result);
+            leitor.onerror = reject;
+
+            leitor.readAsDataURL(arquivo);
+        });
+    }
+
+    botao.disabled = true;
+    mensagem.textContent = "Enviando...";
+
+    try {
+
+        const resposta = await fetch("/api/relatorios", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify({
+                tipo: tipo.value,
+                assunto: assunto.value.trim(),
+                descricao: descricao.value.trim(),
+                imagem
+            })
+        });
+
+        const resultado = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                resultado.erro ||
+                "Não foi possível enviar o relatório."
+            );
+        }
+
+        mensagem.textContent = "✅ Relatório enviado com sucesso.";
+
+        tipo.value = "";
+        assunto.value = "";
+        descricao.value = "";
+        inputImagem.value = "";
+
+    } catch (erro) {
+
+        console.error("Erro ao enviar relatório:", erro);
+        mensagem.textContent = "❌ " + erro.message;
+
+    } finally {
+        botao.disabled = false;
+    }
+
+});
+
+document.addEventListener("change", async function (evento) {
+
+    const seletor = evento.target.closest(".select-estado-relatorio");
+
+    if (!seletor) {
+        return;
+    }
+
+    const token = obterTokenUsuario();
+    const relatorioId = seletor.getAttribute("data-relatorio-id");
+
+    if (!token) {
+        alert("Sessão expirada. Entre novamente.");
+        return;
+    }
+
+    try {
+
+        const resposta = await fetch(
+            `/api/admin/relatorios/${relatorioId}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({
+                    estado: seletor.value
+                })
+            }
+        );
+
+        const resultado = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                resultado.erro ||
+                "Não foi possível alterar o estado."
+            );
+        }
+
+        alert("✅ Estado atualizado.");
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao alterar estado do relatório:",
+            erro
+        );
+
+        alert("❌ " + erro.message);
+    }
+
+});

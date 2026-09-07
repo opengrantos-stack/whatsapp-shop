@@ -276,6 +276,20 @@ async function prepararBanco() {
         `);
 
 
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS gc_angglobal_relatorios (
+                id BIGSERIAL PRIMARY KEY,
+                usuario_id BIGINT,
+                tipo VARCHAR(50) NOT NULL,
+                assunto TEXT NOT NULL,
+                descricao TEXT NOT NULL,
+                imagem TEXT DEFAULT '',
+                estado VARCHAR(30) DEFAULT 'novo',
+                criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+
         console.log(
             'Banco de dados preparado para a nova arquitetura GC-AngGlobal.'
         );
@@ -1436,6 +1450,173 @@ app.get(
         });
     }
 );
+
+
+// ============================================================
+// RELATÓRIOS — ENVIO DO UTILIZADOR
+// ============================================================
+
+app.post('/api/relatorios', verificarUsuario, async (req, res) => {
+    try {
+        const {
+            tipo,
+            assunto,
+            descricao,
+            imagem
+        } = req.body;
+
+        if (!tipo || !assunto || !descricao) {
+            return res.status(400).json({
+                erro: 'Preencha o tipo, assunto e descrição.'
+            });
+        }
+
+        if (imagem && !/^data:image\/(png|jpeg|jpg|webp);base64,/.test(imagem)) {
+            return res.status(400).json({
+                erro: 'Formato de imagem não permitido.'
+            });
+        }
+
+        if (imagem && imagem.length > 7 * 1024 * 1024) {
+            return res.status(400).json({
+                erro: 'A imagem é demasiado grande.'
+            });
+        }
+
+        const resultado = await pool.query(`
+            INSERT INTO gc_angglobal_relatorios
+            (
+                usuario_id,
+                tipo,
+                assunto,
+                descricao,
+                imagem
+            )
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING id, tipo, assunto, descricao, imagem, estado, criado_em
+        `, [
+            req.usuario.id,
+            tipo.trim(),
+            assunto.trim(),
+            descricao.trim(),
+            imagem || ''
+        ]);
+
+        res.status(201).json({
+            sucesso: true,
+            relatorio: resultado.rows[0]
+        });
+
+    } catch (erro) {
+        console.error(
+            'Erro ao enviar relatório:',
+            erro.message
+        );
+
+        res.status(500).json({
+            erro: 'Não foi possível enviar o relatório.'
+        });
+    }
+});
+
+
+// ============================================================
+// RELATÓRIOS — ADMINISTRADOR
+// ============================================================
+
+app.get('/api/admin/relatorios', verificarAdmin, async (req, res) => {
+    try {
+        const resultado = await pool.query(`
+            SELECT
+                r.id,
+                r.usuario_id,
+                s.nome,
+                s.email,
+                r.tipo,
+                r.assunto,
+                r.descricao,
+                r.imagem,
+                r.estado,
+                r.criado_em
+            FROM gc_angglobal_relatorios r
+            LEFT JOIN gc_angglobal_sellers s
+                ON s.id = r.usuario_id
+            ORDER BY r.criado_em DESC
+        `);
+
+        res.json({
+            sucesso: true,
+            relatorios: resultado.rows
+        });
+
+    } catch (erro) {
+        console.error(
+            'Erro ao carregar relatórios:',
+            erro.message
+        );
+
+        res.status(500).json({
+            erro: 'Não foi possível carregar os relatórios.'
+        });
+    }
+});
+
+
+// ============================================================
+// RELATÓRIOS — ALTERAR ESTADO
+// ============================================================
+
+app.put('/api/admin/relatorios/:id', verificarAdmin, async (req, res) => {
+    try {
+        const relatorioId = Number(req.params.id);
+        const { estado } = req.body;
+
+        const estadosValidos = [
+            'novo',
+            'em_analise',
+            'aguardando_utilizador',
+            'resolvido',
+            'fechado'
+        ];
+
+        if (!Number.isInteger(relatorioId) || !estadosValidos.includes(estado)) {
+            return res.status(400).json({
+                erro: 'Estado inválido.'
+            });
+        }
+
+        const resultado = await pool.query(`
+            UPDATE gc_angglobal_relatorios
+            SET estado = $1
+            WHERE id = $2
+            RETURNING id, estado
+        `, [
+            estado,
+            relatorioId
+        ]);
+
+        if (resultado.rowCount === 0) {
+            return res.status(404).json({
+                erro: 'Relatório não encontrado.'
+            });
+        }
+
+        res.json({
+            sucesso: true,
+            relatorio: resultado.rows[0]
+        });
+
+    } catch (erro) {
+        console.error(
+            'Erro ao alterar estado do relatório:',
+            erro.message
+        );
+
+        res.status(500).json({
+            erro: 'Não foi possível alterar o estado.'
+        });
+    }
+});
 
 
 // ============================================================
