@@ -66,6 +66,64 @@ function limparSessao() {
 }
 
 
+async function sincronizarConta() {
+
+    const token =
+        obterTokenUsuario();
+
+    if (!token) {
+        return;
+    }
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/conta",
+                {
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                }
+            );
+
+        if (!resposta.ok) {
+
+            if (resposta.status === 401) {
+                limparSessao();
+            }
+
+            return;
+        }
+
+        const resultado =
+            await resposta.json();
+
+        if (
+            resultado.sucesso &&
+            resultado.usuario
+        ) {
+            localStorage.setItem(
+                "gc_angglobal_user",
+                JSON.stringify(
+                    resultado.usuario
+                )
+            );
+
+            atualizarInterfaceConta();
+        }
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao sincronizar conta:",
+            erro
+        );
+    }
+}
+
+
 // ============================================================
 // ADMINISTRAÇÃO DA PLATAFORMA
 // ============================================================
@@ -711,6 +769,11 @@ function atualizarInterfaceConta() {
                 "emailUtilizadorConta"
             );
 
+        const foto =
+            document.getElementById(
+                "fotoPerfilConta"
+            );
+
         if (nome) {
             nome.textContent =
                 usuario.nome;
@@ -719,6 +782,15 @@ function atualizarInterfaceConta() {
         if (email) {
             email.textContent =
                 usuario.email;
+        }
+
+        if (foto) {
+            if (usuario.foto_perfil) {
+                foto.src =
+                    usuario.foto_perfil;
+            } else {
+                foto.removeAttribute("src");
+            }
         }
 
         if (areaAdministracao) {
@@ -2243,7 +2315,7 @@ async function alterarPalavraPasse() {
     }
 
     const token =
-        localStorage.getItem("gc_angglobal_token");
+        obterTokenUsuario();
 
     if (!token) {
         mensagem.textContent =
@@ -2374,7 +2446,7 @@ async function carregarFotoPerfil(arquivo) {
         }
 
         const token =
-            localStorage.getItem("gc_angglobal_token");
+            obterTokenUsuario();
 
         if (!token) {
             alert("Sessão expirada. Entre novamente.");
@@ -2523,4 +2595,8 @@ document.addEventListener("DOMContentLoaded", function () {
         );
     }
 
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    sincronizarConta();
 });

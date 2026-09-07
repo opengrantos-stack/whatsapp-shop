@@ -896,7 +896,8 @@ async function obterUsuarioPorToken(req) {
                 email,
                 telefone,
                 ativo,
-                role
+                role,
+                foto_perfil
             FROM gc_angglobal_sellers
             WHERE id = $1
             LIMIT 1
