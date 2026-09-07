@@ -2711,3 +2711,99 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const btnEsqueci =
+        document.getElementById("btnEsqueciSenha");
+
+    const area =
+        document.getElementById("areaRecuperarSenha");
+
+    const btnSolicitar =
+        document.getElementById("btnSolicitarRecuperacao");
+
+    const email =
+        document.getElementById("emailRecuperacao");
+
+    const mensagem =
+        document.getElementById("mensagemRecuperacao");
+
+    if (!btnEsqueci || !area || !btnSolicitar) {
+        return;
+    }
+
+    btnEsqueci.addEventListener("click", function () {
+
+        area.style.display =
+            area.style.display === "none"
+                ? "block"
+                : "none";
+    });
+
+    btnSolicitar.addEventListener(
+        "click",
+        async function () {
+
+            const endereco =
+                email.value.trim().toLowerCase();
+
+            mensagem.textContent = "";
+
+            if (!endereco) {
+                mensagem.textContent =
+                    "Informe o seu email.";
+                return;
+            }
+
+            btnSolicitar.disabled = true;
+            btnSolicitar.textContent =
+                "⏳ A enviar...";
+
+            try {
+
+                const resposta =
+                    await fetch(
+                        "/api/contas/esqueci-senha",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+                            body: JSON.stringify({
+                                email: endereco
+                            })
+                        }
+                    );
+
+                const resultado =
+                    await resposta.json();
+
+                if (!resposta.ok) {
+                    throw new Error(
+                        resultado.erro ||
+                        "Não foi possível processar o pedido."
+                    );
+                }
+
+                mensagem.textContent =
+                    "✅ Se o email estiver registado, receberá as instruções de recuperação.";
+
+                email.value = "";
+
+            } catch (erro) {
+
+                mensagem.textContent =
+                    "❌ " + erro.message;
+
+            } finally {
+
+                btnSolicitar.disabled = false;
+                btnSolicitar.textContent =
+                    "📧 Enviar link de recuperação";
+            }
+        }
+    );
+});
