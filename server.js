@@ -158,6 +158,11 @@ async function prepararBanco() {
 
         await pool.query(`
             ALTER TABLE gc_angglobal_stores
+            ADD COLUMN IF NOT EXISTS capa TEXT DEFAULT ''
+        `);
+
+        await pool.query(`
+            ALTER TABLE gc_angglobal_stores
             ADD COLUMN IF NOT EXISTS slug TEXT
         `);
 
@@ -1232,6 +1237,7 @@ app.get(
                         logo,
                         whatsapp,
                         slug,
+                        capa,
                         ativo,
                         criado_em
                     FROM gc_angglobal_stores
@@ -1452,6 +1458,7 @@ app.get(
                         whatsapp,
                         vendedor_id,
                         slug,
+                        capa,
                         criado_em
                     FROM gc_angglobal_stores
                     WHERE ativo = TRUE
@@ -1500,6 +1507,7 @@ app.get(
                         whatsapp,
                         vendedor_id,
                         slug,
+                        capa,
                         criado_em
                     FROM gc_angglobal_stores
                     WHERE slug = $1
@@ -1592,6 +1600,51 @@ app.get(
 // ============================================================
 // PRODUTOS DA MINHA LOJA
 // ============================================================
+
+app.post('/api/minhas-lojas/:lojaId/capa', verificarUsuario, async (req, res) => {
+    try {
+        const lojaId = Number(req.params.lojaId);
+        const { capa } = req.body;
+
+        if (!Number.isInteger(lojaId) || !capa) {
+            return res.status(400).json({ erro: 'Imagem de capa inválida.' });
+        }
+
+        if (!/^data:image\/(png|jpeg|jpg|webp);base64,/.test(capa)) {
+            return res.status(400).json({ erro: 'Formato de imagem não permitido.' });
+        }
+
+        if (capa.length > 7 * 1024 * 1024) {
+            return res.status(400).json({ erro: 'A imagem é demasiado grande. Máximo: 5 MB.' });
+        }
+
+        const loja = await pool.query(`
+            SELECT id
+            FROM gc_angglobal_stores
+            WHERE id = $1 AND vendedor_id = $2
+            LIMIT 1
+        `, [lojaId, req.usuario.id]);
+
+        if (loja.rows.length === 0) {
+            return res.status(403).json({ erro: 'Não tem permissão para alterar esta loja.' });
+        }
+
+        await pool.query(`
+            UPDATE gc_angglobal_stores
+            SET capa = $1
+            WHERE id = $2
+        `, [capa, lojaId]);
+
+        return res.json({
+            sucesso: true,
+            capa
+        });
+
+    } catch (erro) {
+        console.error('Erro ao guardar capa da loja:', erro.message);
+        return res.status(500).json({ erro: 'Não foi possível guardar a capa.' });
+    }
+});
 
 app.get(
     '/api/minhas-lojas/:lojaId/produtos',

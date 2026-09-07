@@ -1495,6 +1495,29 @@ async function carregarMinhasLojas() {
                     return `
                         <div class="card-loja-minha">
 
+                            <div class="capa-loja-minha">
+                                ${
+                                    loja.capa
+                                        ? `<img src="${loja.capa}" alt="Capa da loja">`
+                                        : `<div class="sem-capa-loja">🖼️ Foto de capa</div>`
+                                }
+                            </div>
+
+                            <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/webp"
+                                style="display:none;"
+                                data-input-capa="${loja.id}"
+                            >
+
+                            <button
+                                class="btn"
+                                type="button"
+                                data-alterar-capa="${loja.id}"
+                            >
+                                📷 Alterar capa
+                            </button>
+
                             <h3>
                                 ${loja.nome}
                             </h3>
@@ -2802,5 +2825,99 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     );
+});
+
+
+document.addEventListener("click", function (evento) {
+
+    const botao = evento.target.closest("[data-alterar-capa]");
+
+    if (!botao) {
+        return;
+    }
+
+    const lojaId = botao.getAttribute("data-alterar-capa");
+    const input = document.querySelector(
+        `[data-input-capa="${lojaId}"]`
+    );
+
+    if (input) {
+        input.click();
+    }
+});
+
+
+document.addEventListener("change", async function (evento) {
+
+    const input = evento.target.closest("[data-input-capa]");
+
+    if (!input || !input.files || !input.files[0]) {
+        return;
+    }
+
+    const arquivo = input.files[0];
+    const lojaId = input.getAttribute("data-input-capa");
+    const token = obterTokenUsuario();
+
+    if (!token) {
+        alert("Sessão expirada. Entre novamente.");
+        return;
+    }
+
+    if (!arquivo.type.match(/^image\/(png|jpeg|webp)$/)) {
+        alert("Escolha uma imagem PNG, JPG ou WEBP.");
+        return;
+    }
+
+    if (arquivo.size > 5 * 1024 * 1024) {
+        alert("A imagem deve ter no máximo 5 MB.");
+        return;
+    }
+
+    const leitor = new FileReader();
+
+    leitor.onload = async function () {
+
+        try {
+
+            const resposta = await fetch(
+                `/api/minhas-lojas/${lojaId}/capa`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify({
+                        capa: leitor.result
+                    })
+                }
+            );
+
+            const resultado = await resposta.json();
+
+            if (!resposta.ok) {
+                throw new Error(
+                    resultado.erro ||
+                    "Não foi possível guardar a capa."
+                );
+            }
+
+            alert("✅ Foto de capa atualizada.");
+
+            carregarMinhasLojas();
+
+        } catch (erro) {
+
+            console.error(
+                "Erro ao alterar capa:",
+                erro
+            );
+
+            alert("❌ " + erro.message);
+        }
+    };
+
+    leitor.readAsDataURL(arquivo);
 });
 
