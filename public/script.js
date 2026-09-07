@@ -198,6 +198,12 @@ async function carregarLogoPlataforma() {
         ) {
             logo.src =
                 dados.logo;
+
+            logo.style.visibility =
+                "visible";
+        } else {
+            logo.style.visibility =
+                "visible";
         }
 
     } catch (erro) {
@@ -2191,8 +2197,6 @@ document.addEventListener(
             );
         }
 
-
-        carregarLogoPlataforma();
 
         atualizarInterfaceConta();
 
