@@ -70,6 +70,194 @@ function limparSessao() {
 // ADMINISTRAÇÃO DA PLATAFORMA
 // ============================================================
 
+async function guardarLogoAdmin() {
+
+    const input =
+        document.getElementById("adminLogoInput");
+
+    const preview =
+        document.getElementById("adminLogoPreview");
+
+    const mensagem =
+        document.getElementById("adminLogoMensagem");
+
+    const token =
+        obterTokenUsuario();
+
+    if (!token) {
+        mensagem.textContent =
+            "❌ Sessão administrativa não encontrada.";
+        return;
+    }
+
+    if (!input || !input.files || !input.files[0]) {
+        mensagem.textContent =
+            "⚠️ Selecione um logotipo primeiro.";
+        return;
+    }
+
+    const ficheiro = input.files[0];
+
+    if (!["image/png", "image/jpeg", "image/webp"].includes(ficheiro.type)) {
+        mensagem.textContent =
+            "❌ Formato inválido. Use PNG, JPG ou WebP.";
+        return;
+    }
+
+    if (ficheiro.size > 5 * 1024 * 1024) {
+        mensagem.textContent =
+            "❌ O logotipo deve ter no máximo 5 MB.";
+        return;
+    }
+
+    mensagem.textContent =
+        "⏳ A guardar logotipo...";
+
+    const leitor = new FileReader();
+
+    leitor.onload = async function () {
+
+        try {
+
+            const resposta =
+                await fetch(
+                    "/api/admin/logo",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + token
+                        },
+                        body: JSON.stringify({
+                            logo: leitor.result
+                        })
+                    }
+                );
+
+            const dados =
+                await resposta.json();
+
+            if (!resposta.ok) {
+                throw new Error(
+                    dados.erro ||
+                    "Não foi possível guardar o logotipo."
+                );
+            }
+
+            if (preview) {
+                preview.src =
+                    leitor.result;
+            }
+
+            mensagem.textContent =
+                "✅ Logotipo guardado com sucesso.";
+
+        } catch (erro) {
+
+            console.error(
+                "Erro ao guardar logotipo:",
+                erro
+            );
+
+            mensagem.textContent =
+                "❌ " + erro.message;
+        }
+    };
+
+    leitor.onerror = function () {
+        mensagem.textContent =
+            "❌ Não foi possível ler a imagem.";
+    };
+
+    leitor.readAsDataURL(ficheiro);
+}
+
+
+async function carregarLogoPlataforma() {
+
+    const logo =
+        document.getElementById(
+            "logoPlataforma"
+        );
+
+    if (!logo) {
+        return;
+    }
+
+    try {
+
+        const resposta =
+            await fetch("/api/logo");
+
+        const dados =
+            await resposta.json();
+
+        if (
+            resposta.ok &&
+            dados.logo
+        ) {
+            logo.src =
+                dados.logo;
+        }
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao carregar logotipo da plataforma:",
+            erro
+        );
+    }
+}
+
+
+async function carregarLogoAdmin() {
+
+    const token =
+        obterTokenUsuario();
+
+    const preview =
+        document.getElementById(
+            "adminLogoPreview"
+        );
+
+    if (!token || !preview) {
+        return;
+    }
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/admin/logo",
+                {
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                }
+            );
+
+        const dados =
+            await resposta.json();
+
+        if (
+            resposta.ok &&
+            dados.logo
+        ) {
+            preview.src =
+                dados.logo;
+        }
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao carregar logotipo:",
+            erro
+        );
+    }
+}
+
+
 async function abrirAdministracao() {
 
     const token =
@@ -154,6 +342,8 @@ async function abrirAdministracao() {
     document.body.classList.remove(
         "modo-loja-aberta"
     );
+
+    await carregarLogoAdmin();
 
     await carregarLojasAdmin();
 
@@ -1976,6 +2166,19 @@ document.addEventListener(
         }
 
 
+        const btnAdminGuardarLogo =
+            document.getElementById(
+                "btnAdminGuardarLogo"
+            );
+
+        if (btnAdminGuardarLogo) {
+            btnAdminGuardarLogo.addEventListener(
+                "click",
+                guardarLogoAdmin
+            );
+        }
+
+
         const btnAdminSair =
             document.getElementById(
                 "btnAdminSair"
@@ -1988,6 +2191,8 @@ document.addEventListener(
             );
         }
 
+
+        carregarLogoPlataforma();
 
         atualizarInterfaceConta();
 

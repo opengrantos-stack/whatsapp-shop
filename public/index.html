@@ -29,6 +29,7 @@
 
         <div class="cabecalho-logo">
             <img
+                id="logoPlataforma"
                 src="/png1.jpg"
                 alt="GC-AngGlobal"
                 class="logo"
@@ -534,6 +535,16 @@
                 <p>Painel exclusivo do administrador da GC-AngGlobal.</p>
 
                 <div id="adminResumo"></div>
+
+                <div id="adminIdentidade" style="margin:20px 0; padding:16px; border:1px solid #ddd; border-radius:12px; background:#fff;">
+                    <h3>🖼️ Identidade da plataforma</h3>
+                    <p>Altere o logotipo da GC-AngGlobal sem usar código.</p>
+                    <img id="adminLogoPreview" src="/logo.png" alt="Logotipo atual" style="display:block; max-width:220px; max-height:120px; object-fit:contain; margin:12px 0;">
+                    <input id="adminLogoInput" type="file" accept="image/png,image/jpeg,image/webp">
+                    <br><br>
+                    <button id="btnAdminGuardarLogo" class="btn" type="button">💾 Guardar logotipo</button>
+                    <p id="adminLogoMensagem"></p>
+                </div>
 
                 <div class="admin-acoes">
                     <button id="btnAdminCarregarLojas" class="btn" type="button">

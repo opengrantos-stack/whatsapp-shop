@@ -232,6 +232,24 @@ async function prepararBanco() {
         `);
 
 
+        // ----------------------------------------------------
+        // CONFIGURAÇÕES DA PLATAFORMA
+        // ----------------------------------------------------
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS gc_angglobal_config (
+                id INTEGER PRIMARY KEY DEFAULT 1,
+                logo TEXT DEFAULT ''
+            )
+        `);
+
+        await pool.query(`
+            INSERT INTO gc_angglobal_config (id, logo)
+            VALUES (1, '')
+            ON CONFLICT (id) DO NOTHING
+        `);
+
+
         console.log(
             'Banco de dados preparado para a nova arquitetura GC-AngGlobal.'
         );
@@ -307,6 +325,121 @@ async function verificarAdmin(req, res, next) {
 
 
 // ============================================================
+// IDENTIDADE DA PLATAFORMA
+// ============================================================
+
+app.get(
+    '/api/logo',
+    async (req, res) => {
+
+        try {
+
+            const resultado = await pool.query(`
+                SELECT logo
+                FROM gc_angglobal_config
+                WHERE id = 1
+            `);
+
+            res.json({
+                sucesso: true,
+                logo: resultado.rows[0]?.logo || ''
+            });
+
+        } catch (erro) {
+
+            console.error(
+                'Erro ao carregar logotipo público:',
+                erro.message
+            );
+
+            res.status(500).json({
+                erro:
+                    'Não foi possível carregar o logotipo.'
+            });
+        }
+    }
+);
+
+
+app.get(
+    '/api/admin/logo',
+    verificarAdmin,
+    async (req, res) => {
+
+        try {
+
+            const resultado = await pool.query(`
+                SELECT logo
+                FROM gc_angglobal_config
+                WHERE id = 1
+            `);
+
+            res.json({
+                sucesso: true,
+                logo: resultado.rows[0]?.logo || ''
+            });
+
+        } catch (erro) {
+
+            console.error(
+                'Erro ao carregar logotipo:',
+                erro.message
+            );
+
+            res.status(500).json({
+                erro:
+                    'Não foi possível carregar o logotipo.'
+            });
+        }
+    }
+);
+
+
+app.post(
+    '/api/admin/logo',
+    verificarAdmin,
+    async (req, res) => {
+
+        try {
+
+            const { logo } = req.body;
+
+            if (!logo || typeof logo !== 'string') {
+                return res.status(400).json({
+                    erro: 'Logotipo inválido.'
+                });
+            }
+
+            await pool.query(`
+                UPDATE gc_angglobal_config
+                SET logo = $1
+                WHERE id = 1
+            `, [logo]);
+
+            res.json({
+                sucesso: true,
+                mensagem: 'Logotipo guardado com sucesso.'
+            });
+
+        } catch (erro) {
+
+            console.error(
+                'Erro ao guardar logotipo:',
+                erro.message
+            );
+
+            res.status(500).json({
+                erro:
+                    'Não foi possível guardar o logotipo.'
+            });
+        }
+    }
+);
+
+
+// ============================================================
+// CONTAS DOS UTILIZADORES
+// ============================================================// ============================================================
 // CONTAS DOS UTILIZADORES
 // ============================================================
 
