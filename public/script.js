@@ -1415,154 +1415,119 @@ async function criarLoja() {
 
 async function carregarMinhasLojas() {
 
-    const lista =
-        document.getElementById(
-            "listaMinhasLojas"
-        );
+    const lista = document.getElementById("listaMinhasLojas");
 
-    if (!lista) {
-        return;
-    }
+    if (!lista) return;
 
-
-    const token =
-        obterTokenUsuario();
-
+    const token = obterTokenUsuario();
 
     if (!token) {
-
-        lista.innerHTML =
-            "Entre na sua conta para ver as suas lojas.";
-
+        lista.innerHTML = "Entre na sua conta para ver as suas lojas.";
         return;
     }
 
-
-    lista.innerHTML =
-        "A carregar...";
-
+    lista.innerHTML = "A carregar...";
 
     try {
 
-        const resposta =
-            await fetch(
-                "/api/minhas-lojas",
-                {
-                    headers: {
-                        "Authorization":
-                            "Bearer " + token
-                    }
-                }
-            );
+        const resposta = await fetch("/api/minhas-lojas", {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
 
-
-        const resultado =
-            await resposta.json();
-
+        const resultado = await resposta.json();
 
         if (!resposta.ok) {
-
             throw new Error(
-                resultado.erro ||
-                "Não foi possível carregar as lojas."
+                resultado.erro || "Não foi possível carregar as lojas."
             );
         }
 
+        const lojas = resultado.lojas || [];
 
-        const lojas =
-            resultado.lojas || [];
-
+        window.minhasLojas = lojas;
 
         if (lojas.length === 0) {
-
-            lista.innerHTML =
-                "<p>Ainda não criou nenhuma loja.</p>";
-
+            lista.innerHTML = "<p>Ainda não criou nenhuma loja.</p>";
             return;
         }
 
+        lista.innerHTML = lojas.map(loja => {
 
-        lista.innerHTML =
-            lojas.map(
-                loja => {
+            const link =
+                window.location.origin +
+                "/loja/" +
+                loja.slug;
 
-                    const link =
-                        window.location.origin +
-                        "/loja/" +
-                        loja.slug;
+            return `
+                <div class="card-loja-minha">
 
+                    <div class="capa-loja-minha">
+                        ${
+                            loja.capa
+                                ? `<img src="${loja.capa}" alt="Capa da loja">`
+                                : `<div class="sem-capa-loja">🖼️ Sem foto de capa</div>`
+                        }
+                    </div>
 
-                    return `
-                        <div class="card-loja-minha">
+                    <h3 style="margin-top:12px;">
+                        ${loja.nome}
+                    </h3>
 
-                            <div class="capa-loja-minha">
-                                ${
-                                    loja.capa
-                                        ? `<img src="${loja.capa}" alt="Capa da loja">`
-                                        : `<div class="sem-capa-loja">🖼️ Foto de capa</div>`
-                                }
-                            </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
 
-                            <input
-                                type="file"
-                                accept="image/png,image/jpeg,image/webp"
-                                id="input-capa-${loja.id}"
-                                style="display:none;"
-                                data-input-capa="${loja.id}"
-                            >
+                        <button
+                            type="button"
+                            class="btn"
+                            data-editar-loja="${loja.id}"
+                        >
+                            ✏️ Editar loja
+                        </button>
 
-                            <label
-                                class="btn"
-                                for="input-capa-${loja.id}"
-                                style="display:inline-block;cursor:pointer;"
-                            >
-                                📷 Alterar capa
-                            </label>
+                        <button
+                            type="button"
+                            class="btn"
+                            data-alterar-estado-loja="${loja.id}"
+                        >
+                            ${
+                                loja.ativo
+                                    ? "⏸️ Desativar loja"
+                                    : "▶️ Reativar loja"
+                            }
+                        </button>
 
-                            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-                                <button type="button" class="btn" data-editar-loja="${loja.id}">
-                                    ✏️ Editar loja
-                                </button>
+                    </div>
 
-                                <button type="button" class="btn" data-alterar-estado-loja="${loja.id}">
-                                    ${loja.ativo ? '⏸️ Desativar loja' : '▶️ Reativar loja'}
-                                </button>
-                            </div>
+                    <p>
+                        ${loja.descricao || ""}
+                    </p>
 
-                            <h3>
-                                ${loja.nome}
-                            </h3>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
 
-                            <p>
-                                ${loja.descricao || ""}
-                            </p>
+                        <button
+                            class="btn"
+                            type="button"
+                            data-abrir-loja="${loja.id}"
+                        >
+                            Abrir loja
+                        </button>
 
-                            <p>
-                                📱 ${loja.whatsapp || ""}
-                            </p>
+                        <button
+                            class="btn"
+                            type="button"
+                            data-copiar-link
+                            data-link="${link}"
+                        >
+                            📋 Copiar link
+                        </button>
 
-                            <button
-                                class="btn"
-                                type="button"
-                                data-abrir-loja="${loja.id}"
-                            >
-                                Abrir loja
-                            </button>
+                    </div>
 
-                            <button
-                                class="btn"
-                                type="button"
-                                data-copiar-link
-                                data-link="${link}"
-                            >
-                                📋 Copiar link
-                            </button>
+                </div>
+            `;
 
-                        </div>
-                    `;
-                }
-            ).join("");
-
+        }).join("");
 
     } catch (erro) {
 
@@ -1575,8 +1540,6 @@ async function carregarMinhasLojas() {
             "❌ " + erro.message;
     }
 }
-
-
 
 // ============================================================
 // EVENTOS
@@ -2860,47 +2823,308 @@ document.addEventListener("click", function (evento) {
 
 
 async function editarLojaGC(lojaId) {
-    const loja = minhasLojas.find(l => String(l.id) === String(lojaId));
-    if (!loja) return;
 
-    const nome = prompt("Nome da loja:", loja.nome || "");
-    if (nome === null) return;
+    const loja = (window.minhasLojas || []).find(
+        l => String(l.id) === String(lojaId)
+    );
 
-    const descricao = prompt("Descrição da loja:", loja.descricao || "");
-    if (descricao === null) return;
+    if (!loja) {
+        alert("❌ Não foi possível encontrar esta loja.");
+        return;
+    }
 
-    const whatsapp = prompt("WhatsApp da loja:", loja.whatsapp || "");
-    if (whatsapp === null) return;
+    const existente = document.getElementById("editor-loja-" + lojaId);
 
-    try {
-        const resposta = await fetch(`/api/minhas-lojas/${lojaId}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${obterTokenUsuario()}`
-            },
-            body: JSON.stringify({
-                nome: nome.trim(),
-                descricao: descricao.trim(),
-                whatsapp: whatsapp.trim(),
-                logo: loja.logo || ""
-            })
-        });
+    if (existente) {
+        existente.remove();
+        return;
+    }
 
-        const dados = await resposta.json();
+    const card = document.querySelector(
+        `[data-editar-loja="${lojaId}"]`
+    )?.closest(".card-loja-minha");
 
-        if (!resposta.ok || !dados.sucesso) {
-            alert("❌ " + (dados.mensagem || "Não foi possível atualizar a loja."));
+    if (!card) return;
+
+    const editor = document.createElement("div");
+
+    editor.id = "editor-loja-" + lojaId;
+    editor.style.marginTop = "15px";
+    editor.style.padding = "16px";
+    editor.style.border = "1px solid #ddd";
+    editor.style.borderRadius = "12px";
+    editor.style.background = "#f8faf9";
+
+    editor.innerHTML = `
+        <h3>✏️ Editar loja</h3>
+
+        <input
+            id="editar-nome-${lojaId}"
+            class="input"
+            type="text"
+            placeholder="Nome da loja"
+            value="${(loja.nome || "").replace(/"/g, "&quot;")}"
+            style="width:100%;box-sizing:border-box;margin-bottom:10px;"
+        >
+
+        <textarea
+            id="editar-descricao-${lojaId}"
+            class="input"
+            placeholder="Descrição da loja"
+            style="width:100%;box-sizing:border-box;margin-bottom:10px;min-height:90px;"
+        >${loja.descricao || ""}</textarea>
+
+        <input
+            id="editar-whatsapp-${lojaId}"
+            class="input"
+            type="text"
+            placeholder="WhatsApp da loja"
+            value="${(loja.whatsapp || "").replace(/"/g, "&quot;")}"
+            style="width:100%;box-sizing:border-box;margin-bottom:12px;"
+        >
+
+        <p style="margin-bottom:6px;"><strong>📷 Foto de capa</strong></p>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+
+            <button
+                type="button"
+                class="btn"
+                data-editor-galeria-capa="${lojaId}"
+            >
+                🖼️ Galeria
+            </button>
+
+            <button
+                type="button"
+                class="btn"
+                data-editor-camera-capa="${lojaId}"
+            >
+                📷 Câmara
+            </button>
+
+        </div>
+
+        <input
+            type="file"
+            id="editor-capa-${lojaId}"
+            accept="image/png,image/jpeg,image/webp"
+            style="display:none;"
+        >
+
+        <div
+            id="preview-editor-capa-${lojaId}"
+            style="margin-bottom:12px;"
+        >
+            ${
+                loja.capa
+                    ? `<img src="${loja.capa}" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;">`
+                    : ""
+            }
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+
+            <button
+                type="button"
+                class="btn"
+                data-guardar-edicao-loja="${lojaId}"
+            >
+                💾 Guardar alterações
+            </button>
+
+            <button
+                type="button"
+                class="btn"
+                data-fechar-edicao-loja="${lojaId}"
+            >
+                Fechar
+            </button>
+
+        </div>
+
+        <p id="mensagem-edicao-loja-${lojaId}" style="margin-top:10px;"></p>
+    `;
+
+    card.appendChild(editor);
+
+    const inputCapa =
+        document.getElementById("editor-capa-" + lojaId);
+
+    const preview =
+        document.getElementById("preview-editor-capa-" + lojaId);
+
+    const btnGaleria =
+        editor.querySelector(
+            `[data-editor-galeria-capa="${lojaId}"]`
+        );
+
+    const btnCamera =
+        editor.querySelector(
+            `[data-editor-camera-capa="${lojaId}"]`
+        );
+
+    btnGaleria.addEventListener("click", () => {
+        inputCapa.removeAttribute("capture");
+        inputCapa.click();
+    });
+
+    btnCamera.addEventListener("click", () => {
+        inputCapa.setAttribute("capture", "environment");
+        inputCapa.click();
+    });
+
+    inputCapa.addEventListener("change", () => {
+
+        const arquivo = inputCapa.files?.[0];
+
+        if (!arquivo) return;
+
+        if (!arquivo.type.match(/^image\/(png|jpeg|webp)$/)) {
+            alert("Escolha uma imagem PNG, JPG ou WEBP.");
+            inputCapa.value = "";
             return;
         }
 
-        alert("✅ Dados da loja atualizados.");
-        carregarMinhasLojas();
+        if (arquivo.size > 5 * 1024 * 1024) {
+            alert("A imagem deve ter no máximo 5 MB.");
+            inputCapa.value = "";
+            return;
+        }
 
-    } catch (erro) {
-        console.error("Erro ao editar loja:", erro);
-        alert("❌ Não foi possível atualizar a loja.");
-    }
+        const leitor = new FileReader();
+
+        leitor.onload = () => {
+            preview.innerHTML =
+                `<img src="${leitor.result}" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;">`;
+        };
+
+        leitor.readAsDataURL(arquivo);
+    });
+
+    editor.querySelector(
+        `[data-fechar-edicao-loja="${lojaId}"]`
+    ).addEventListener("click", () => {
+        editor.remove();
+    });
+
+    editor.querySelector(
+        `[data-guardar-edicao-loja="${lojaId}"]`
+    ).addEventListener("click", async () => {
+
+        const nome =
+            document.getElementById(
+                "editar-nome-" + lojaId
+            ).value.trim();
+
+        const descricao =
+            document.getElementById(
+                "editar-descricao-" + lojaId
+            ).value.trim();
+
+        const whatsapp =
+            document.getElementById(
+                "editar-whatsapp-" + lojaId
+            ).value.trim();
+
+        const mensagem =
+            document.getElementById(
+                "mensagem-edicao-loja-" + lojaId
+            );
+
+        if (!nome) {
+            mensagem.textContent =
+                "❌ O nome da loja é obrigatório.";
+            return;
+        }
+
+        try {
+
+            let capa = loja.capa || "";
+
+            const arquivo = inputCapa.files?.[0];
+
+            if (arquivo) {
+                capa = await new Promise((resolve, reject) => {
+
+                    const leitor = new FileReader();
+
+                    leitor.onload = () => resolve(leitor.result);
+                    leitor.onerror = reject;
+
+                    leitor.readAsDataURL(arquivo);
+                });
+            }
+
+            const resposta = await fetch(
+                `/api/minhas-lojas/${lojaId}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization":
+                            "Bearer " + obterTokenUsuario()
+                    },
+                    body: JSON.stringify({
+                        nome,
+                        descricao,
+                        whatsapp,
+                        logo: loja.logo || "",
+                        capa
+                    })
+                }
+            );
+
+            const dados = await resposta.json();
+
+            if (!resposta.ok || !dados.sucesso) {
+                mensagem.textContent =
+                    "❌ " +
+                    (dados.mensagem ||
+                    "Não foi possível atualizar a loja.");
+                return;
+            }
+
+            if (capa !== (loja.capa || "")) {
+
+                const respostaCapa = await fetch(
+                    `/api/minhas-lojas/${lojaId}/capa`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization":
+                                "Bearer " + obterTokenUsuario()
+                        },
+                        body: JSON.stringify({ capa })
+                    }
+                );
+
+                const dadosCapa =
+                    await respostaCapa.json();
+
+                if (!respostaCapa.ok || !dadosCapa.sucesso) {
+                    mensagem.textContent =
+                        "⚠️ Dados atualizados, mas não foi possível atualizar a capa.";
+                    return;
+                }
+            }
+
+            alert("✅ Dados da loja atualizados.");
+            editor.remove();
+            await carregarMinhasLojas();
+
+        } catch (erro) {
+
+            console.error(
+                "Erro ao editar loja:",
+                erro
+            );
+
+            mensagem.textContent =
+                "❌ Não foi possível atualizar a loja.";
+        }
+    });
 }
 
 async function alterarEstadoLojaGC(lojaId) {
