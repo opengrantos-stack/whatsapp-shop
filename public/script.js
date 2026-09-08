@@ -2823,58 +2823,63 @@ document.addEventListener("click", function (evento) {
 
 
 async function editarLojaGC(lojaId) {
-    const loja = (window.minhasLojas || []).find(l => Number(l.id) === Number(lojaId));
+    const loja = (window.minhasLojas || []).find(
+        l => Number(l.id) === Number(lojaId)
+    );
+
     if (!loja) {
         alert("Loja não encontrada.");
         return;
     }
 
-    const conta = document.getElementById("secaoMinhaConta");
-    if (!conta) {
-        alert("Área da conta não encontrada.");
+    const lista = document.getElementById("listaMinhasLojas");
+
+    if (!lista) {
+        alert("Área de Minhas lojas não encontrada.");
         return;
     }
 
-    const editorId = "editor-loja-tela-" + lojaId;
-    let editor = document.getElementById(editorId);
+    const conteudoOriginal = lista.innerHTML;
 
-    if (editor) {
-        editor.style.display = "block";
-        return;
-    }
-
-    const estadoConta = Array.from(conta.children).map(el => ({
-        el: el,
-        display: el.style.display
-    }));
-
-    editor = document.createElement("div");
-    editor.id = editorId;
+    const editor = document.createElement("div");
+    editor.id = "editor-loja-tela-" + lojaId;
     editor.style.cssText = "width:100%;max-width:700px;margin:0 auto;";
 
     editor.innerHTML = `
         <div class="card" style="padding:20px;">
+
             <h2 style="margin-top:0;">✏️ Editar loja</h2>
 
             <label>Nome da loja</label>
-            <input id="editar-nome-${lojaId}" class="input"
+            <input
+                id="editar-nome-${lojaId}"
+                class="input"
                 value="${String(loja.nome || "").replace(/"/g, '&quot;')}"
-                style="width:100%;box-sizing:border-box;">
+                style="width:100%;box-sizing:border-box;"
+            >
 
             <label>Descrição</label>
-            <textarea id="editar-descricao-${lojaId}" class="input"
+            <textarea
+                id="editar-descricao-${lojaId}"
+                class="input"
                 rows="4"
-                style="width:100%;box-sizing:border-box;">${loja.descricao || ""}</textarea>
+                style="width:100%;box-sizing:border-box;"
+            >${loja.descricao || ""}</textarea>
 
             <label>WhatsApp</label>
-            <input id="editar-whatsapp-${lojaId}" class="input"
+            <input
+                id="editar-whatsapp-${lojaId}"
+                class="input"
                 value="${String(loja.whatsapp || "").replace(/"/g, '&quot;')}"
-                style="width:100%;box-sizing:border-box;">
+                style="width:100%;box-sizing:border-box;"
+            >
 
             <h3>📷 Foto de capa</h3>
 
-            <div id="editor-preview-capa-${lojaId}"
-                style="width:100%;height:180px;overflow:hidden;border-radius:12px;background:#f1f5f3;margin-bottom:12px;">
+            <div
+                id="editor-preview-capa-${lojaId}"
+                style="width:100%;height:180px;overflow:hidden;border-radius:12px;background:#f1f5f3;margin-bottom:12px;"
+            >
                 ${
                     loja.capa
                     ? `<img src="${loja.capa}" style="width:100%;height:100%;object-fit:cover;display:block;">`
@@ -2883,58 +2888,94 @@ async function editarLojaGC(lojaId) {
             </div>
 
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button type="button" class="btn" id="editor-galeria-capa-${lojaId}">
+
+                <button
+                    type="button"
+                    class="btn"
+                    id="editor-galeria-capa-${lojaId}"
+                >
                     🖼️ Galeria
                 </button>
 
-                <button type="button" class="btn" id="editor-camera-capa-${lojaId}">
+                <button
+                    type="button"
+                    class="btn"
+                    id="editor-camera-capa-${lojaId}"
+                >
                     📷 Câmara
                 </button>
+
             </div>
 
-            <input id="editor-capa-${lojaId}"
+            <input
+                id="editor-capa-${lojaId}"
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
-                style="display:none;">
+                style="display:none;"
+            >
 
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;">
-                <button type="button" class="btn" id="guardar-edicao-loja-${lojaId}">
+
+                <button
+                    type="button"
+                    class="btn"
+                    id="guardar-edicao-loja-${lojaId}"
+                >
                     💾 Guardar alterações
                 </button>
 
-                <button type="button" class="btn" id="fechar-edicao-loja-${lojaId}">
+                <button
+                    type="button"
+                    class="btn"
+                    id="fechar-edicao-loja-${lojaId}"
+                >
                     Fechar
                 </button>
+
             </div>
 
-            <p id="mensagem-editar-loja-${lojaId}" style="margin-top:12px;"></p>
+            <p
+                id="mensagem-editar-loja-${lojaId}"
+                style="margin-top:12px;"
+            ></p>
+
         </div>
     `;
 
-    Array.from(conta.children).forEach(el => {
-        el.style.display = "none";
-    });
+    lista.innerHTML = "";
+    lista.appendChild(editor);
 
-    conta.appendChild(editor);
+    const inputCapa =
+        document.getElementById("editor-capa-" + lojaId);
 
-    const inputCapa = document.getElementById("editor-capa-" + lojaId);
-    const preview = document.getElementById("editor-preview-capa-" + lojaId);
+    const preview =
+        document.getElementById("editor-preview-capa-" + lojaId);
 
-    document.getElementById("editor-galeria-capa-" + lojaId).onclick = () => {
+    document.getElementById(
+        "editor-galeria-capa-" + lojaId
+    ).onclick = () => {
         inputCapa.removeAttribute("capture");
         inputCapa.click();
     };
 
-    document.getElementById("editor-camera-capa-" + lojaId).onclick = () => {
+    document.getElementById(
+        "editor-camera-capa-" + lojaId
+    ).onclick = () => {
         inputCapa.setAttribute("capture", "environment");
         inputCapa.click();
     };
 
     inputCapa.onchange = () => {
-        const ficheiro = inputCapa.files && inputCapa.files[0];
+
+        const ficheiro =
+            inputCapa.files && inputCapa.files[0];
+
         if (!ficheiro) return;
 
-        if (!["image/png", "image/jpeg", "image/webp"].includes(ficheiro.type)) {
+        if (
+            !["image/png", "image/jpeg", "image/webp"]
+            .includes(ficheiro.type)
+        ) {
             alert("Escolha uma imagem PNG, JPG ou WEBP.");
             inputCapa.value = "";
             return;
@@ -2956,91 +2997,146 @@ async function editarLojaGC(lojaId) {
         leitor.readAsDataURL(ficheiro);
     };
 
-    document.getElementById("fechar-edicao-loja-" + lojaId).onclick = () => {
-        editor.remove();
+    document.getElementById(
+        "fechar-edicao-loja-" + lojaId
+    ).onclick = () => {
 
-        estadoConta.forEach(item => {
-            item.el.style.display = item.display;
-        });
+        lista.innerHTML = conteudoOriginal;
     };
 
-    document.getElementById("guardar-edicao-loja-" + lojaId).onclick = async () => {
-        const nome = document.getElementById("editar-nome-" + lojaId).value.trim();
-        const descricao = document.getElementById("editar-descricao-" + lojaId).value;
-        const whatsapp = document.getElementById("editar-whatsapp-" + lojaId).value.trim();
-        const mensagem = document.getElementById("mensagem-editar-loja-" + lojaId);
+    document.getElementById(
+        "guardar-edicao-loja-" + lojaId
+    ).onclick = async () => {
+
+        const nome =
+            document.getElementById(
+                "editar-nome-" + lojaId
+            ).value.trim();
+
+        const descricao =
+            document.getElementById(
+                "editar-descricao-" + lojaId
+            ).value;
+
+        const whatsapp =
+            document.getElementById(
+                "editar-whatsapp-" + lojaId
+            ).value.trim();
+
+        const mensagem =
+            document.getElementById(
+                "mensagem-editar-loja-" + lojaId
+            );
 
         if (!nome) {
-            mensagem.textContent = "❌ O nome da loja é obrigatório.";
+            mensagem.textContent =
+                "❌ O nome da loja é obrigatório.";
             return;
         }
 
         try {
-            mensagem.textContent = "⏳ A guardar...";
+
+            mensagem.textContent =
+                "⏳ A guardar...";
 
             let capa = loja.capa || "";
 
             if (inputCapa.files && inputCapa.files[0]) {
+
                 capa = await new Promise((resolve, reject) => {
+
                     const leitor = new FileReader();
-                    leitor.onload = () => resolve(leitor.result);
+
+                    leitor.onload = () =>
+                        resolve(leitor.result);
+
                     leitor.onerror = reject;
-                    leitor.readAsDataURL(inputCapa.files[0]);
+
+                    leitor.readAsDataURL(
+                        inputCapa.files[0]
+                    );
                 });
             }
 
             const token = obterTokenUsuario();
 
-            const resposta = await fetch("/api/minhas-lojas/" + lojaId, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + token
-                },
-                body: JSON.stringify({
-                    nome,
-                    descricao,
-                    whatsapp,
-                    logo: loja.logo || ""
-                })
-            });
-
-            const resultado = await resposta.json();
-
-            if (!resposta.ok || !resultado.sucesso) {
-                throw new Error(resultado.mensagem || "Não foi possível guardar.");
-            }
-
-            if (capa !== (loja.capa || "")) {
-                const respostaCapa = await fetch("/api/minhas-lojas/" + lojaId + "/capa", {
-                    method: "POST",
+            const resposta = await fetch(
+                "/api/minhas-lojas/" + lojaId,
+                {
+                    method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": "Bearer " + token
                     },
-                    body: JSON.stringify({ capa })
-                });
+                    body: JSON.stringify({
+                        nome,
+                        descricao,
+                        whatsapp,
+                        logo: loja.logo || ""
+                    })
+                }
+            );
 
-                const resultadoCapa = await respostaCapa.json();
+            const resultado =
+                await resposta.json();
 
-                if (!respostaCapa.ok || !resultadoCapa.sucesso) {
-                    throw new Error(resultadoCapa.mensagem || "Não foi possível guardar a capa.");
+            if (
+                !resposta.ok ||
+                !resultado.sucesso
+            ) {
+                throw new Error(
+                    resultado.mensagem ||
+                    "Não foi possível guardar."
+                );
+            }
+
+            if (capa !== (loja.capa || "")) {
+
+                const respostaCapa =
+                    await fetch(
+                        "/api/minhas-lojas/" +
+                        lojaId +
+                        "/capa",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type":
+                                    "application/json",
+                                "Authorization":
+                                    "Bearer " + token
+                            },
+                            body: JSON.stringify({
+                                capa
+                            })
+                        }
+                    );
+
+                const resultadoCapa =
+                    await respostaCapa.json();
+
+                if (
+                    !respostaCapa.ok ||
+                    !resultadoCapa.sucesso
+                ) {
+                    throw new Error(
+                        resultadoCapa.mensagem ||
+                        "Não foi possível guardar a capa."
+                    );
                 }
             }
 
-            alert("✅ Loja atualizada com sucesso.");
-
-            editor.remove();
-
-            estadoConta.forEach(item => {
-                item.el.style.display = item.display;
-            });
+            alert(
+                "✅ Loja atualizada com sucesso."
+            );
 
             carregarMinhasLojas();
 
         } catch (erro) {
+
             console.error(erro);
-            mensagem.textContent = "❌ " + erro.message;
+
+            mensagem.textContent =
+                "❌ " + erro.message;
         }
     };
 }
