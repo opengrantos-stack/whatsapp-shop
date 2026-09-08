@@ -427,13 +427,14 @@ async function verificarAdmin(req, res, next) {
         const token =
             autorizacao.substring('Bearer '.length);
 
+        // Sessão administrativa persistente
         const tokenHash =
             crypto
                 .createHash('sha256')
                 .update(token)
                 .digest('hex');
 
-        const resultado =
+        const sessaoAdmin =
             await pool.query(`
                 SELECT
                     s.id,
@@ -453,14 +454,22 @@ async function verificarAdmin(req, res, next) {
                 LIMIT 1
             `, [tokenHash]);
 
-        if (resultado.rowCount === 0) {
+        if (sessaoAdmin.rowCount > 0) {
+            req.usuario = sessaoAdmin.rows[0];
+            return next();
+        }
+
+        // Compatibilidade com a sessão normal de uma conta admin
+        const usuario =
+            await obterUsuarioPorToken(req);
+
+        if (!usuario || usuario.role !== 'admin' || !usuario.ativo) {
             return res.status(403).json({
                 erro: 'Sessão administrativa inválida ou expirada.'
             });
         }
 
-        req.usuario =
-            resultado.rows[0];
+        req.usuario = usuario;
 
         next();
 
