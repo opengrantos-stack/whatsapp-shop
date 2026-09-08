@@ -310,13 +310,21 @@ async function prepararBanco() {
 // ADMINISTRADOR
 // ============================================================
 
-const ADMIN_PASSWORD =
-    process.env.ADMIN_PASSWORD || '123456';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+const sessoesAdmin = new Set();
 
 
 app.post('/api/admin/login', (req, res) => {
 
     const { password } = req.body;
+
+    if (!ADMIN_PASSWORD) {
+        console.error('ADMIN_PASSWORD não configurada no ambiente.');
+        return res.status(503).json({
+            erro: 'Autenticação administrativa não configurada.'
+        });
+    }
 
     if (password !== ADMIN_PASSWORD) {
         return res.status(401).json({
@@ -324,9 +332,13 @@ app.post('/api/admin/login', (req, res) => {
         });
     }
 
+    const token = require('crypto').randomBytes(32).toString('hex');
+
+    sessoesAdmin.add(token);
+
     res.json({
         sucesso: true,
-        token: 'gc-angglobal-admin'
+        token
     });
 });
 
@@ -335,18 +347,48 @@ async function verificarAdmin(req, res, next) {
 
     try {
 
-        const usuario =
-            await obterUsuarioPorToken(req);
+        const autorizacao =
+            req.headers.authorization;
 
-        if (!usuario || usuario.role !== 'admin') {
+        if (!autorizacao || !autorizacao.startsWith('Bearer ')) {
             return res.status(403).json({
-                erro:
-                    'Acesso reservado ao administrador.'
+                erro: 'Acesso reservado ao administrador.'
+            });
+        }
+
+        const token =
+            autorizacao.substring('Bearer '.length);
+
+        if (!sessoesAdmin.has(token)) {
+            return res.status(403).json({
+                erro: 'Sessão administrativa inválida ou expirada.'
+            });
+        }
+
+        const resultado =
+            await pool.query(`
+                SELECT
+                    id,
+                    nome,
+                    email,
+                    telefone,
+                    ativo,
+                    role,
+                    foto_perfil
+                FROM gc_angglobal_sellers
+                WHERE role = 'admin'
+                  AND ativo = TRUE
+                LIMIT 1
+            `);
+
+        if (resultado.rowCount === 0) {
+            return res.status(403).json({
+                erro: 'Administrador não encontrado.'
             });
         }
 
         req.usuario =
-            usuario;
+            resultado.rows[0];
 
         next();
 
@@ -363,8 +405,6 @@ async function verificarAdmin(req, res, next) {
         });
     }
 }
-
-
 
 // ============================================================
 // IDENTIDADE DA PLATAFORMA

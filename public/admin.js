@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("lojaProduto");
 
         const ehAdmin =
-            tokenAdmin === "gc-angglobal-admin";
+            !!tokenAdmin;
 
         const ehVendedor =
             !!tokenVendedor;
@@ -154,8 +154,7 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
         const ehAdminAtual =
-            tokenAdminAtual ===
-            "gc-angglobal-admin";
+            !!tokenAdminAtual;
 
         const ehVendedorAtual =
             !!tokenVendedorAtual;
@@ -443,7 +442,7 @@ document.addEventListener("DOMContentLoaded", function () {
             "gc_angglobal_admin_token"
         );
 
-        if (token === "gc-angglobal-admin") {
+        if (!!token) {
             senhaAdmin.style.display = "none";
             btnLoginAdmin.style.display = "none";
             btnSairAdmin.style.display = "block";
@@ -651,7 +650,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const token = tokenAdmin();
 
-        if (token !== "gc-angglobal-admin") {
+        if (!token) {
 
             mensagemLoja.textContent =
                 "Entre como administrador primeiro.";
@@ -675,7 +674,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     btnCriarLoja.addEventListener("click", async function () {
 
-        if (tokenAdmin() !== "gc-angglobal-admin") {
+        if (!tokenAdmin()) {
             mensagemLoja.textContent =
                 "Entre como administrador primeiro.";
             return;
