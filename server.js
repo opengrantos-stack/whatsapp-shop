@@ -2683,3 +2683,5 @@ prepararBanco()
             process.exit(1);
         }
     );
+
+// Deploy administrativo persistente
