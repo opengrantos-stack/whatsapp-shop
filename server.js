@@ -5,6 +5,7 @@ const path = require('path');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const { Resend } = require('resend');
+const crypto = require('crypto');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -132,6 +133,22 @@ async function prepararBanco() {
                 usado BOOLEAN DEFAULT FALSE,
                 criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS gc_angglobal_admin_sessions (
+                id BIGSERIAL PRIMARY KEY,
+                usuario_id BIGINT NOT NULL,
+                token_hash TEXT UNIQUE NOT NULL,
+                expira_em TIMESTAMP NOT NULL,
+                criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await pool.query(`
+            CREATE INDEX IF NOT EXISTS
+            idx_gc_angglobal_admin_sessions_expira
+            ON gc_angglobal_admin_sessions(expira_em)
         `);
 
 
@@ -312,35 +329,85 @@ async function prepararBanco() {
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
-const sessoesAdmin = new Set();
 
+app.post('/api/admin/login', async (req, res) => {
 
-app.post('/api/admin/login', (req, res) => {
+    try {
 
-    const { password } = req.body;
+        const { password } = req.body;
 
-    if (!ADMIN_PASSWORD) {
-        console.error('ADMIN_PASSWORD não configurada no ambiente.');
-        return res.status(503).json({
-            erro: 'Autenticação administrativa não configurada.'
+        if (!ADMIN_PASSWORD) {
+            console.error('ADMIN_PASSWORD não configurada no ambiente.');
+            return res.status(503).json({
+                erro: 'Autenticação administrativa não configurada.'
+            });
+        }
+
+        if (password !== ADMIN_PASSWORD) {
+            return res.status(401).json({
+                erro: 'Senha incorreta.'
+            });
+        }
+
+        const administrador =
+            await pool.query(`
+                SELECT id
+                FROM gc_angglobal_sellers
+                WHERE role = 'admin'
+                  AND ativo = TRUE
+                LIMIT 1
+            `);
+
+        if (administrador.rowCount === 0) {
+            return res.status(503).json({
+                erro: 'Administrador não encontrado.'
+            });
+        }
+
+        const token =
+            crypto.randomBytes(32).toString('hex');
+
+        const tokenHash =
+            crypto
+                .createHash('sha256')
+                .update(token)
+                .digest('hex');
+
+        await pool.query(`
+            DELETE FROM gc_angglobal_admin_sessions
+            WHERE expira_em < NOW()
+        `);
+
+        await pool.query(`
+            INSERT INTO gc_angglobal_admin_sessions
+            (usuario_id, token_hash, expira_em)
+            VALUES (
+                $1,
+                $2,
+                NOW() + INTERVAL '8 hours'
+            )
+        `, [
+            administrador.rows[0].id,
+            tokenHash
+        ]);
+
+        res.json({
+            sucesso: true,
+            token
+        });
+
+    } catch (erro) {
+
+        console.error(
+            'Erro no login administrativo:',
+            erro.message
+        );
+
+        res.status(500).json({
+            erro:
+                'Não foi possível efetuar o login administrativo.'
         });
     }
-
-    if (password !== ADMIN_PASSWORD) {
-        return res.status(401).json({
-            erro: 'Senha incorreta.'
-        });
-    }
-
-    const token =
-        require('crypto').randomBytes(32).toString('hex');
-
-    sessoesAdmin.add(token);
-
-    res.json({
-        sucesso: true,
-        token
-    });
 });
 
 
@@ -360,31 +427,35 @@ async function verificarAdmin(req, res, next) {
         const token =
             autorizacao.substring('Bearer '.length);
 
-        if (!sessoesAdmin.has(token)) {
-            return res.status(403).json({
-                erro: 'Sessão administrativa inválida ou expirada.'
-            });
-        }
+        const tokenHash =
+            crypto
+                .createHash('sha256')
+                .update(token)
+                .digest('hex');
 
         const resultado =
             await pool.query(`
                 SELECT
-                    id,
-                    nome,
-                    email,
-                    telefone,
-                    ativo,
-                    role,
-                    foto_perfil
-                FROM gc_angglobal_sellers
-                WHERE role = 'admin'
-                  AND ativo = TRUE
+                    s.id,
+                    s.nome,
+                    s.email,
+                    s.telefone,
+                    s.ativo,
+                    s.role,
+                    s.foto_perfil
+                FROM gc_angglobal_admin_sessions sess
+                INNER JOIN gc_angglobal_sellers s
+                    ON s.id = sess.usuario_id
+                WHERE sess.token_hash = $1
+                  AND sess.expira_em > NOW()
+                  AND s.role = 'admin'
+                  AND s.ativo = TRUE
                 LIMIT 1
-            `);
+            `, [tokenHash]);
 
         if (resultado.rowCount === 0) {
             return res.status(403).json({
-                erro: 'Administrador não encontrado.'
+                erro: 'Sessão administrativa inválida ou expirada.'
             });
         }
 
