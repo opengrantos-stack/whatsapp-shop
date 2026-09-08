@@ -2823,308 +2823,187 @@ document.addEventListener("click", function (evento) {
 
 
 async function editarLojaGC(lojaId) {
+    const loja = (window.minhasLojas || []).find(l => Number(l.id) === Number(lojaId));
+    if (!loja) return;
 
-    const loja = (window.minhasLojas || []).find(
-        l => String(l.id) === String(lojaId)
-    );
+    const conta = document.getElementById("minhaConta");
+    const lojas = document.getElementById("minhasLojas");
+    if (!conta) return;
 
-    if (!loja) {
-        alert("❌ Não foi possível encontrar esta loja.");
-        return;
-    }
+    const editorId = `editor-loja-tela-${lojaId}`;
+    let editor = document.getElementById(editorId);
 
-    const existente = document.getElementById("editor-loja-" + lojaId);
+    if (!editor) {
+        editor = document.createElement("div");
+        editor.id = editorId;
+        editor.style.cssText = "width:100%;max-width:700px;margin:0 auto;";
 
-    if (existente) {
-        existente.remove();
-        return;
-    }
+        editor.innerHTML = `
+            <div class="card" style="padding:20px;">
+                <h2 style="margin-top:0;">✏️ Editar loja</h2>
 
-    const card = document.querySelector(
-        `[data-editar-loja="${lojaId}"]`
-    )?.closest(".card-loja-minha");
+                <label>Nome da loja</label>
+                <input id="editar-nome-${lojaId}" class="input" value="${String(loja.nome || "").replace(/"/g, '&quot;')}" style="width:100%;box-sizing:border-box;">
 
-    if (!card) return;
+                <label>Descrição</label>
+                <textarea id="editar-descricao-${lojaId}" class="input" rows="4" style="width:100%;box-sizing:border-box;">${loja.descricao || ""}</textarea>
 
-    const editor = document.createElement("div");
+                <label>WhatsApp</label>
+                <input id="editar-whatsapp-${lojaId}" class="input" value="${String(loja.whatsapp || "").replace(/"/g, '&quot;')}" style="width:100%;box-sizing:border-box;">
 
-    editor.id = "editor-loja-" + lojaId;
-    editor.style.marginTop = "15px";
-    editor.style.padding = "16px";
-    editor.style.border = "1px solid #ddd";
-    editor.style.borderRadius = "12px";
-    editor.style.background = "#f8faf9";
+                <h3>📷 Foto de capa</h3>
 
-    editor.innerHTML = `
-        <h3>✏️ Editar loja</h3>
+                <div id="editor-preview-capa-${lojaId}" style="width:100%;height:180px;overflow:hidden;border-radius:12px;background:#f1f5f3;margin-bottom:12px;">
+                    ${loja.capa
+                        ? `<img src="${loja.capa}" style="width:100%;height:100%;object-fit:cover;display:block;">`
+                        : `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#777;">🖼️ Sem foto de capa</div>`
+                    }
+                </div>
 
-        <input
-            id="editar-nome-${lojaId}"
-            class="input"
-            type="text"
-            placeholder="Nome da loja"
-            value="${(loja.nome || "").replace(/"/g, "&quot;")}"
-            style="width:100%;box-sizing:border-box;margin-bottom:10px;"
-        >
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button type="button" class="btn" data-editor-galeria-capa="${lojaId}">🖼️ Galeria</button>
+                    <button type="button" class="btn" data-editor-camera-capa="${lojaId}">📷 Câmara</button>
+                </div>
 
-        <textarea
-            id="editar-descricao-${lojaId}"
-            class="input"
-            placeholder="Descrição da loja"
-            style="width:100%;box-sizing:border-box;margin-bottom:10px;min-height:90px;"
-        >${loja.descricao || ""}</textarea>
+                <input id="editor-capa-${lojaId}" type="file" accept="image/png,image/jpeg,image/webp" style="display:none;">
 
-        <input
-            id="editar-whatsapp-${lojaId}"
-            class="input"
-            type="text"
-            placeholder="WhatsApp da loja"
-            value="${(loja.whatsapp || "").replace(/"/g, "&quot;")}"
-            style="width:100%;box-sizing:border-box;margin-bottom:12px;"
-        >
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;">
+                    <button type="button" class="btn" data-guardar-edicao-loja="${lojaId}">💾 Guardar alterações</button>
+                    <button type="button" class="btn" data-fechar-edicao-loja="${lojaId}">Fechar</button>
+                </div>
 
-        <p style="margin-bottom:6px;"><strong>📷 Foto de capa</strong></p>
+                <p id="mensagem-editar-loja-${lojaId}" style="margin-top:12px;"></p>
+            </div>
+        `;
 
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+        conta.appendChild(editor);
 
-            <button
-                type="button"
-                class="btn"
-                data-editor-galeria-capa="${lojaId}"
-            >
-                🖼️ Galeria
-            </button>
+        const inputCapa = document.getElementById(`editor-capa-${lojaId}`);
+        const preview = document.getElementById(`editor-preview-capa-${lojaId}`);
 
-            <button
-                type="button"
-                class="btn"
-                data-editor-camera-capa="${lojaId}"
-            >
-                📷 Câmara
-            </button>
-
-        </div>
-
-        <input
-            type="file"
-            id="editor-capa-${lojaId}"
-            accept="image/png,image/jpeg,image/webp"
-            style="display:none;"
-        >
-
-        <div
-            id="preview-editor-capa-${lojaId}"
-            style="margin-bottom:12px;"
-        >
-            ${
-                loja.capa
-                    ? `<img src="${loja.capa}" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;">`
-                    : ""
-            }
-        </div>
-
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-
-            <button
-                type="button"
-                class="btn"
-                data-guardar-edicao-loja="${lojaId}"
-            >
-                💾 Guardar alterações
-            </button>
-
-            <button
-                type="button"
-                class="btn"
-                data-fechar-edicao-loja="${lojaId}"
-            >
-                Fechar
-            </button>
-
-        </div>
-
-        <p id="mensagem-edicao-loja-${lojaId}" style="margin-top:10px;"></p>
-    `;
-
-    card.appendChild(editor);
-
-    const inputCapa =
-        document.getElementById("editor-capa-" + lojaId);
-
-    const preview =
-        document.getElementById("preview-editor-capa-" + lojaId);
-
-    const btnGaleria =
-        editor.querySelector(
-            `[data-editor-galeria-capa="${lojaId}"]`
-        );
-
-    const btnCamera =
-        editor.querySelector(
-            `[data-editor-camera-capa="${lojaId}"]`
-        );
-
-    btnGaleria.addEventListener("click", () => {
-        inputCapa.removeAttribute("capture");
-        inputCapa.click();
-    });
-
-    btnCamera.addEventListener("click", () => {
-        inputCapa.setAttribute("capture", "environment");
-        inputCapa.click();
-    });
-
-    inputCapa.addEventListener("change", () => {
-
-        const arquivo = inputCapa.files?.[0];
-
-        if (!arquivo) return;
-
-        if (!arquivo.type.match(/^image\/(png|jpeg|webp)$/)) {
-            alert("Escolha uma imagem PNG, JPG ou WEBP.");
-            inputCapa.value = "";
-            return;
-        }
-
-        if (arquivo.size > 5 * 1024 * 1024) {
-            alert("A imagem deve ter no máximo 5 MB.");
-            inputCapa.value = "";
-            return;
-        }
-
-        const leitor = new FileReader();
-
-        leitor.onload = () => {
-            preview.innerHTML =
-                `<img src="${leitor.result}" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;">`;
+        editor.querySelector(`[data-editor-galeria-capa="${lojaId}"]`).onclick = () => {
+            inputCapa.removeAttribute("capture");
+            inputCapa.click();
         };
 
-        leitor.readAsDataURL(arquivo);
-    });
+        editor.querySelector(`[data-editor-camera-capa="${lojaId}"]`).onclick = () => {
+            inputCapa.setAttribute("capture", "environment");
+            inputCapa.click();
+        };
 
-    editor.querySelector(
-        `[data-fechar-edicao-loja="${lojaId}"]`
-    ).addEventListener("click", () => {
-        editor.remove();
-    });
+        inputCapa.onchange = () => {
+            const ficheiro = inputCapa.files?.[0];
+            if (!ficheiro) return;
 
-    editor.querySelector(
-        `[data-guardar-edicao-loja="${lojaId}"]`
-    ).addEventListener("click", async () => {
-
-        const nome =
-            document.getElementById(
-                "editar-nome-" + lojaId
-            ).value.trim();
-
-        const descricao =
-            document.getElementById(
-                "editar-descricao-" + lojaId
-            ).value.trim();
-
-        const whatsapp =
-            document.getElementById(
-                "editar-whatsapp-" + lojaId
-            ).value.trim();
-
-        const mensagem =
-            document.getElementById(
-                "mensagem-edicao-loja-" + lojaId
-            );
-
-        if (!nome) {
-            mensagem.textContent =
-                "❌ O nome da loja é obrigatório.";
-            return;
-        }
-
-        try {
-
-            let capa = loja.capa || "";
-
-            const arquivo = inputCapa.files?.[0];
-
-            if (arquivo) {
-                capa = await new Promise((resolve, reject) => {
-
-                    const leitor = new FileReader();
-
-                    leitor.onload = () => resolve(leitor.result);
-                    leitor.onerror = reject;
-
-                    leitor.readAsDataURL(arquivo);
-                });
+            if (!["image/png", "image/jpeg", "image/webp"].includes(ficheiro.type)) {
+                alert("Escolha uma imagem PNG, JPG ou WEBP.");
+                inputCapa.value = "";
+                return;
             }
 
-            const resposta = await fetch(
-                `/api/minhas-lojas/${lojaId}`,
-                {
+            if (ficheiro.size > 5 * 1024 * 1024) {
+                alert("A imagem deve ter no máximo 5 MB.");
+                inputCapa.value = "";
+                return;
+            }
+
+            const leitor = new FileReader();
+            leitor.onload = () => {
+                preview.innerHTML = `<img src="${leitor.result}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+            };
+            leitor.readAsDataURL(ficheiro);
+        };
+
+        editor.querySelector(`[data-fechar-edicao-loja="${lojaId}"]`).onclick = () => {
+            editor.remove();
+            if (lojas) lojas.style.display = "";
+        };
+
+        editor.querySelector(`[data-guardar-edicao-loja="${lojaId}"]`).onclick = async () => {
+            const nome = document.getElementById(`editar-nome-${lojaId}`).value.trim();
+            const descricao = document.getElementById(`editar-descricao-${lojaId}`).value;
+            const whatsapp = document.getElementById(`editar-whatsapp-${lojaId}`).value.trim();
+            const mensagem = document.getElementById(`mensagem-editar-loja-${lojaId}`);
+
+            if (!nome) {
+                mensagem.textContent = "❌ O nome da loja é obrigatório.";
+                return;
+            }
+
+            try {
+                mensagem.textContent = "⏳ A guardar...";
+
+                let capa = loja.capa || "";
+
+                if (inputCapa.files?.[0]) {
+                    capa = await new Promise((resolve, reject) => {
+                        const leitor = new FileReader();
+                        leitor.onload = () => resolve(leitor.result);
+                        leitor.onerror = reject;
+                        leitor.readAsDataURL(inputCapa.files[0]);
+                    });
+                }
+
+                const token = obterTokenUsuario();
+
+                const resposta = await fetch(`/api/minhas-lojas/${lojaId}`, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization":
-                            "Bearer " + obterTokenUsuario()
+                        "Authorization": `Bearer ${token}`
                     },
                     body: JSON.stringify({
                         nome,
                         descricao,
                         whatsapp,
-                        logo: loja.logo || "",
-                        capa
+                        logo: loja.logo || ""
                     })
+                });
+
+                const resultado = await resposta.json();
+
+                if (!resposta.ok || !resultado.sucesso) {
+                    throw new Error(resultado.mensagem || "Não foi possível guardar.");
                 }
-            );
 
-            const dados = await resposta.json();
-
-            if (!resposta.ok || !dados.sucesso) {
-                mensagem.textContent =
-                    "❌ " +
-                    (dados.mensagem ||
-                    "Não foi possível atualizar a loja.");
-                return;
-            }
-
-            if (capa !== (loja.capa || "")) {
-
-                const respostaCapa = await fetch(
-                    `/api/minhas-lojas/${lojaId}/capa`,
-                    {
+                if (capa !== (loja.capa || "")) {
+                    const respostaCapa = await fetch(`/api/minhas-lojas/${lojaId}/capa`, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
-                            "Authorization":
-                                "Bearer " + obterTokenUsuario()
+                            "Authorization": `Bearer ${token}`
                         },
                         body: JSON.stringify({ capa })
+                    });
+
+                    const resultadoCapa = await respostaCapa.json();
+
+                    if (!respostaCapa.ok || !resultadoCapa.sucesso) {
+                        throw new Error(resultadoCapa.mensagem || "Não foi possível guardar a capa.");
                     }
-                );
-
-                const dadosCapa =
-                    await respostaCapa.json();
-
-                if (!respostaCapa.ok || !dadosCapa.sucesso) {
-                    mensagem.textContent =
-                        "⚠️ Dados atualizados, mas não foi possível atualizar a capa.";
-                    return;
                 }
+
+                alert("✅ Loja atualizada com sucesso.");
+                editor.remove();
+                if (lojas) lojas.style.display = "";
+                carregarMinhasLojas();
+
+            } catch (erro) {
+                console.error(erro);
+                mensagem.textContent = `❌ ${erro.message}`;
             }
+        };
+    }
 
-            alert("✅ Dados da loja atualizados.");
-            editor.remove();
-            await carregarMinhasLojas();
+    if (lojas) lojas.style.display = "none";
 
-        } catch (erro) {
-
-            console.error(
-                "Erro ao editar loja:",
-                erro
-            );
-
-            mensagem.textContent =
-                "❌ Não foi possível atualizar a loja.";
-        }
+    const outros = Array.from(conta.children).filter(el => el.id !== editorId);
+    outros.forEach(el => {
+        el.dataset.antesEditarLoja = el.style.display;
+        el.style.display = "none";
     });
+
+    editor.style.display = "block";
 }
 
 async function alterarEstadoLojaGC(lojaId) {
