@@ -2829,7 +2829,7 @@ async function editarLojaGC(lojaId) {
         return;
     }
 
-    const conta = document.getElementById("minhaConta");
+    const conta = document.getElementById("secaoMinhaConta");
     if (!conta) {
         alert("Área da conta não encontrada.");
         return;
