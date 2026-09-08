@@ -310,9 +310,9 @@ async function prepararBanco() {
 // ADMINISTRADOR
 // ============================================================
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const crypto = require('crypto');
 
-const sessoesAdmin = new Set();
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 
 app.post('/api/admin/login', (req, res) => {
@@ -332,9 +332,22 @@ app.post('/api/admin/login', (req, res) => {
         });
     }
 
-    const token = require('crypto').randomBytes(32).toString('hex');
+    const payload = JSON.stringify({
+        iat: Date.now(),
+        nonce: crypto.randomBytes(32).toString('hex')
+    });
 
-    sessoesAdmin.add(token);
+    const payloadBase64 =
+        Buffer.from(payload).toString('base64url');
+
+    const assinatura =
+        crypto
+            .createHmac('sha256', ADMIN_PASSWORD)
+            .update(payloadBase64)
+            .digest('hex');
+
+    const token =
+        payloadBase64 + '.' + assinatura;
 
     res.json({
         sucesso: true,
@@ -350,6 +363,12 @@ async function verificarAdmin(req, res, next) {
         const autorizacao =
             req.headers.authorization;
 
+        if (!ADMIN_PASSWORD) {
+            return res.status(503).json({
+                erro: 'Autenticação administrativa não configurada.'
+            });
+        }
+
         if (!autorizacao || !autorizacao.startsWith('Bearer ')) {
             return res.status(403).json({
                 erro: 'Acesso reservado ao administrador.'
@@ -359,9 +378,56 @@ async function verificarAdmin(req, res, next) {
         const token =
             autorizacao.substring('Bearer '.length);
 
-        if (!sessoesAdmin.has(token)) {
+        const partes = token.split('.');
+
+        if (partes.length !== 2) {
             return res.status(403).json({
                 erro: 'Sessão administrativa inválida ou expirada.'
+            });
+        }
+
+        const [payloadBase64, assinatura] = partes;
+
+        const assinaturaEsperada =
+            crypto
+                .createHmac('sha256', ADMIN_PASSWORD)
+                .update(payloadBase64)
+                .digest('hex');
+
+        if (
+            assinatura.length !== assinaturaEsperada.length ||
+            !crypto.timingSafeEqual(
+                Buffer.from(assinatura),
+                Buffer.from(assinaturaEsperada)
+            )
+        ) {
+            return res.status(403).json({
+                erro: 'Sessão administrativa inválida ou expirada.'
+            });
+        }
+
+        let dados;
+
+        try {
+            dados = JSON.parse(
+                Buffer.from(payloadBase64, 'base64url').toString('utf8')
+            );
+        } catch {
+            return res.status(403).json({
+                erro: 'Sessão administrativa inválida ou expirada.'
+            });
+        }
+
+        const validade =
+            8 * 60 * 60 * 1000;
+
+        if (
+            !dados.iat ||
+            Date.now() - dados.iat > validade ||
+            Date.now() - dados.iat < 0
+        ) {
+            return res.status(403).json({
+                erro: 'Sessão administrativa expirada.'
             });
         }
 
