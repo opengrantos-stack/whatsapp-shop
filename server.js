@@ -1620,6 +1620,120 @@ app.put('/api/admin/relatorios/:id', verificarAdmin, async (req, res) => {
 
 
 // ============================================================
+
+// EDITAR DADOS DA LOJA PELO PROPRIETÁRIO
+app.put('/api/minhas-lojas/:lojaId', verificarUsuario, async (req, res) => {
+    try {
+        const lojaId = Number(req.params.lojaId);
+        const { nome, descricao, whatsapp, logo } = req.body;
+
+        if (!nome || !String(nome).trim()) {
+            return res.status(400).json({
+                sucesso: false,
+                mensagem: 'O nome da loja é obrigatório.'
+            });
+        }
+
+        if (logo && !/^data:image\/(png|jpeg|jpg|webp);base64,/.test(logo)) {
+            return res.status(400).json({
+                sucesso: false,
+                mensagem: 'Formato de logo inválido.'
+            });
+        }
+
+        if (logo && logo.length > 7 * 1024 * 1024) {
+            return res.status(400).json({
+                sucesso: false,
+                mensagem: 'A logo é demasiado grande.'
+            });
+        }
+
+        const resultado = await pool.query(`
+            UPDATE gc_angglobal_stores
+            SET nome = $1,
+                descricao = $2,
+                whatsapp = $3,
+                logo = $4
+            WHERE id = $5
+              AND vendedor_id = $6
+            RETURNING id, nome, descricao, logo, whatsapp, vendedor_id, slug, ativo, capa
+        `, [
+            String(nome).trim(),
+            descricao || '',
+            whatsapp || '',
+            logo || '',
+            lojaId,
+            req.usuario.id
+        ]);
+
+        if (resultado.rows.length === 0) {
+            return res.status(404).json({
+                sucesso: false,
+                mensagem: 'Loja não encontrada ou sem permissão.'
+            });
+        }
+
+        res.json({
+            sucesso: true,
+            loja: resultado.rows[0]
+        });
+
+    } catch (erro) {
+        console.error('Erro ao editar loja:', erro);
+        res.status(500).json({
+            sucesso: false,
+            mensagem: 'Erro ao atualizar a loja.'
+        });
+    }
+});
+
+
+// ATIVAR / DESATIVAR LOJA PELO PROPRIETÁRIO
+app.put('/api/minhas-lojas/:lojaId/estado', verificarUsuario, async (req, res) => {
+    try {
+        const lojaId = Number(req.params.lojaId);
+        const { ativo } = req.body;
+
+        if (typeof ativo !== 'boolean') {
+            return res.status(400).json({
+                sucesso: false,
+                mensagem: 'Estado da loja inválido.'
+            });
+        }
+
+        const resultado = await pool.query(`
+            UPDATE gc_angglobal_stores
+            SET ativo = $1
+            WHERE id = $2
+              AND vendedor_id = $3
+            RETURNING id, nome, ativo
+        `, [
+            ativo,
+            lojaId,
+            req.usuario.id
+        ]);
+
+        if (resultado.rows.length === 0) {
+            return res.status(404).json({
+                sucesso: false,
+                mensagem: 'Loja não encontrada ou sem permissão.'
+            });
+        }
+
+        res.json({
+            sucesso: true,
+            loja: resultado.rows[0]
+        });
+
+    } catch (erro) {
+        console.error('Erro ao alterar estado da loja:', erro);
+        res.status(500).json({
+            sucesso: false,
+            mensagem: 'Erro ao alterar o estado da loja.'
+        });
+    }
+});
+
 // LOJAS PÚBLICAS
 // ============================================================
 

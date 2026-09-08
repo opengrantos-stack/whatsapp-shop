@@ -1519,6 +1519,16 @@ async function carregarMinhasLojas() {
                                 📷 Alterar capa
                             </label>
 
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+                                <button type="button" class="btn" data-editar-loja="${loja.id}">
+                                    ✏️ Editar loja
+                                </button>
+
+                                <button type="button" class="btn" data-alterar-estado-loja="${loja.id}">
+                                    ${loja.ativo ? '⏸️ Desativar loja' : '▶️ Reativar loja'}
+                                </button>
+                            </div>
+
                             <h3>
                                 ${loja.nome}
                             </h3>
@@ -2847,6 +2857,103 @@ document.addEventListener("click", function (evento) {
     }
 });
 
+
+
+async function editarLojaGC(lojaId) {
+    const loja = minhasLojas.find(l => String(l.id) === String(lojaId));
+    if (!loja) return;
+
+    const nome = prompt("Nome da loja:", loja.nome || "");
+    if (nome === null) return;
+
+    const descricao = prompt("Descrição da loja:", loja.descricao || "");
+    if (descricao === null) return;
+
+    const whatsapp = prompt("WhatsApp da loja:", loja.whatsapp || "");
+    if (whatsapp === null) return;
+
+    try {
+        const resposta = await fetch(`/api/minhas-lojas/${lojaId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${obterTokenUsuario()}`
+            },
+            body: JSON.stringify({
+                nome: nome.trim(),
+                descricao: descricao.trim(),
+                whatsapp: whatsapp.trim(),
+                logo: loja.logo || ""
+            })
+        });
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok || !dados.sucesso) {
+            alert("❌ " + (dados.mensagem || "Não foi possível atualizar a loja."));
+            return;
+        }
+
+        alert("✅ Dados da loja atualizados.");
+        carregarMinhasLojas();
+
+    } catch (erro) {
+        console.error("Erro ao editar loja:", erro);
+        alert("❌ Não foi possível atualizar a loja.");
+    }
+}
+
+async function alterarEstadoLojaGC(lojaId) {
+    const loja = minhasLojas.find(l => String(l.id) === String(lojaId));
+    if (!loja) return;
+
+    const novoEstado = !loja.ativo;
+    const acao = novoEstado ? "reativar" : "desativar";
+
+    if (!confirm(`Tem certeza que deseja ${acao} esta loja?`)) {
+        return;
+    }
+
+    try {
+        const resposta = await fetch(`/api/minhas-lojas/${lojaId}/estado`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${obterTokenUsuario()}`
+            },
+            body: JSON.stringify({
+                ativo: novoEstado
+            })
+        });
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok || !dados.sucesso) {
+            alert("❌ " + (dados.mensagem || "Não foi possível alterar o estado da loja."));
+            return;
+        }
+
+        alert(novoEstado ? "✅ Loja reativada." : "⏸️ Loja desativada.");
+        carregarMinhasLojas();
+
+    } catch (erro) {
+        console.error("Erro ao alterar estado da loja:", erro);
+        alert("❌ Não foi possível alterar o estado da loja.");
+    }
+}
+
+document.addEventListener("click", function (evento) {
+    const editar = evento.target.closest("[data-editar-loja]");
+    if (editar) {
+        editarLojaGC(editar.getAttribute("data-editar-loja"));
+        return;
+    }
+
+    const estado = evento.target.closest("[data-alterar-estado-loja]");
+    if (estado) {
+        alterarEstadoLojaGC(estado.getAttribute("data-alterar-estado-loja"));
+    }
+});
 
 document.addEventListener("change", async function (evento) {
 
