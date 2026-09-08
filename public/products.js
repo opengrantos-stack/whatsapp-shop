@@ -1241,12 +1241,6 @@ function mostrarProdutos() {
                 </h4>
 
                 <p>
-                    ${escaparHTML(
-                        produto.descricao
-                    )}
-                </p>
-
-                <p>
                     <strong>
                         ${formatarKz(
                             produto.preco
@@ -1262,6 +1256,23 @@ function mostrarProdutos() {
                             : "📦 Produto"
                     }
                 </p>
+
+                <button
+                    type="button"
+                    class="btn"
+                    data-ver-detalhes-produto="${produto.id}"
+                >
+                    ℹ️ Ver detalhes
+                </button>
+
+                <div
+                    id="detalhes-produto-${produto.id}"
+                    style="display:none;margin:10px 0;padding:10px;border-radius:8px;background:#f5f7f6;"
+                >
+                    ${escaparHTML(
+                        produto.descricao || ""
+                    )}
+                </div>
 
                 <button
                     type="button"
@@ -1492,6 +1503,21 @@ async function excluirProduto(produtoId) {
 
 
 // ============================================================
+// VER DETALHES DO PRODUTO
+document.addEventListener("click", function (event) {
+    const botao = event.target.closest("[data-ver-detalhes-produto]");
+    if (!botao) return;
+
+    const produtoId = botao.getAttribute("data-ver-detalhes-produto");
+    const detalhes = document.getElementById("detalhes-produto-" + produtoId);
+    if (!detalhes) return;
+
+    const aberto = detalhes.style.display !== "none";
+
+    detalhes.style.display = aberto ? "none" : "block";
+    botao.textContent = aberto ? "ℹ️ Ver detalhes" : "🔼 Ocultar detalhes";
+});
+
 // ADICIONAR AO PEDIDO
 // ============================================================
 
