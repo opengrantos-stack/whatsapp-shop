@@ -405,6 +405,19 @@ async function carregarProdutosDaLoja(
     lojaId
 ) {
 
+    // Limpa imediatamente os produtos da loja anterior
+    // enquanto os produtos da nova loja são carregados.
+    const listaProdutos =
+        document.getElementById(
+            "listaProdutosLoja"
+        );
+
+    if (listaProdutos) {
+        listaProdutos.innerHTML = "";
+    }
+
+    produtos = [];
+
     try {
 
         const origem =
