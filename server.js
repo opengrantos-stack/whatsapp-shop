@@ -182,6 +182,11 @@ async function prepararBanco() {
 
         await pool.query(`
             ALTER TABLE gc_angglobal_stores
+            ADD COLUMN IF NOT EXISTS moeda TEXT DEFAULT 'Kz'
+        `);
+
+        await pool.query(`
+            ALTER TABLE gc_angglobal_stores
             ADD COLUMN IF NOT EXISTS slug TEXT
         `);
 
@@ -1417,8 +1422,21 @@ app.post(
                 nome,
                 descricao,
                 logo,
-                whatsapp
+                whatsapp,
+                moeda
             } = req.body;
+
+            const moedasPermitidas = [
+                'Kz',
+                'BRL',
+                'USD',
+                'EUR'
+            ];
+
+            const moedaLoja =
+                moedasPermitidas.includes(moeda)
+                    ? moeda
+                    : 'Kz';
 
             if (
                 !nome ||
@@ -1444,10 +1462,11 @@ app.post(
                         logo,
                         whatsapp,
                         vendedor_id,
-                        slug
+                        slug,
+                        moeda
                     )
                     VALUES
-                    ($1, $2, $3, $4, $5, $6)
+                    ($1, $2, $3, $4, $5, $6, $7)
                     RETURNING
                         id,
                         nome,
@@ -1456,6 +1475,7 @@ app.post(
                         whatsapp,
                         vendedor_id,
                         slug,
+                        moeda,
                         ativo,
                         criado_em
                 `, [
@@ -1464,7 +1484,8 @@ app.post(
                     logo || '',
                     whatsapp || '',
                     req.usuario.id,
-                    slug
+                    slug,
+                    moedaLoja
                 ]);
 
             const loja =

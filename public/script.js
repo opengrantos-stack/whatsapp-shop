@@ -1289,6 +1289,11 @@ async function criarLoja() {
             "whatsappNovaLoja"
         ).value.trim();
 
+    const moeda =
+        document.getElementById(
+            "moedaNovaLoja"
+        ).value;
+
     const mensagem =
         document.getElementById(
             "mensagemCriarLoja"
@@ -1348,7 +1353,8 @@ async function criarLoja() {
                         nome,
                         descricao,
                         logo: "",
-                        whatsapp
+                        whatsapp,
+                        moeda
                     })
                 }
             );

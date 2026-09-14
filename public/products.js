@@ -296,6 +296,9 @@ async function abrirLoja(
         loja
     );
 
+    window.moedaLojaAtual =
+        loja.moeda || "Kz";
+
     await carregarProdutosDaLoja(
         loja.id
     );
@@ -1130,20 +1133,49 @@ if (typeof escaparHTML !== "function") {
 }
 
 
-if (typeof formatarKz !== "function") {
+if (typeof formatarMoeda !== "function") {
 
-    function formatarKz(valor) {
+    function formatarMoeda(valor, moeda) {
 
         const numero =
             Number(valor) || 0;
 
-        return new Intl.NumberFormat(
-            "pt-AO",
-            {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
+        const configuracoes = {
+            Kz: {
+                locale: "pt-AO",
+                currency: "AOA"
+            },
+            BRL: {
+                locale: "pt-BR",
+                currency: "BRL"
+            },
+            USD: {
+                locale: "en-US",
+                currency: "USD"
+            },
+            EUR: {
+                locale: "pt-PT",
+                currency: "EUR"
             }
-        ).format(numero) + " Kz";
+        };
+
+        const config =
+            configuracoes[moeda] ||
+            configuracoes.Kz;
+
+        return new Intl.NumberFormat(
+            config.locale,
+            {
+                style: "currency",
+                currency: config.currency,
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }
+        ).format(numero);
+    }
+
+    function formatarKz(valor) {
+        return formatarMoeda(valor, "Kz");
     }
 }
 
@@ -1255,8 +1287,9 @@ function mostrarProdutos() {
 
                 <p>
                     <strong>
-                        ${formatarKz(
-                            produto.preco
+                        ${formatarMoeda(
+                            produto.preco,
+                            window.moedaLojaAtual || "Kz"
                         )}
                     </strong>
                 </p>
