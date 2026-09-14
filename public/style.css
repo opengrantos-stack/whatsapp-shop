@@ -1437,6 +1437,10 @@ body.modo-loja-aberta #secaoPlataforma {
     object-fit: cover;
 }
 
+.foto-perfil-container img[src]:not([src=""]) + span {
+    display: none;
+}
+
 #btnAlterarFotoPerfil {
     padding: 6px 10px !important;
     font-size: 12px !important;
