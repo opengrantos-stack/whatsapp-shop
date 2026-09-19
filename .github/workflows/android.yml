@@ -7,6 +7,9 @@ on:
       - 'android/**'
       - '.github/workflows/android.yml'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -37,8 +40,18 @@ jobs:
       - name: Compilar APK
         run: gradle -p android assembleDebug --no-daemon
 
-      - name: Guardar APK
-        uses: actions/upload-artifact@v4
+      - name: Verificar APK
+        run: |
+          ls -lh android/app/build/outputs/apk/debug/
+          test -s android/app/build/outputs/apk/debug/*.apk
+
+      - name: Publicar APK
+        uses: softprops/action-gh-release@v3
         with:
-          name: GC-AngGlobal-debug
-          path: android/app/build/outputs/apk/debug/*.apk
+          tag_name: android-debug-${{ github.run_number }}
+          name: GC-AngGlobal Android ${{ github.run_number }}
+          body: |
+            APK de teste da aplicação GC-AngGlobal.
+            Commit: ${{ github.sha }}
+          prerelease: true
+          files: android/app/build/outputs/apk/debug/*.apk
