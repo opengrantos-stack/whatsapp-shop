@@ -43,12 +43,47 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
+
                 if (url.startsWith("https://gc-angglobal.geracaocalueio.ao/")) {
                     return false;
                 }
+
                 try {
-                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-                } catch (ActivityNotFoundException ignored) { }
+                    if (url.startsWith("intent://")) {
+                        Intent intent = Intent.parseUri(
+                            url,
+                            Intent.URI_INTENT_SCHEME
+                        );
+
+                        try {
+                            startActivity(intent);
+                        } catch (ActivityNotFoundException e) {
+                            String fallback =
+                                intent.getStringExtra(
+                                    "browser_fallback_url"
+                                );
+
+                            if (fallback != null && !fallback.isEmpty()) {
+                                startActivity(
+                                    new Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse(fallback)
+                                    )
+                                );
+                            }
+                        }
+
+                    } else {
+                        startActivity(
+                            new Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse(url)
+                            )
+                        );
+                    }
+
+                } catch (Exception ignored) { }
+
                 return true;
             }
         });
